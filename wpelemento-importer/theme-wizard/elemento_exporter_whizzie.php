@@ -602,7 +602,7 @@ class WPElemento_Importer_ThemeWhizzie {
      * Imports the Demo Content
      * @since 1.1.0
      */
-       public function setup_widgets() {
+      public function setup_widgets() {
        }
        function wz_activate_elemento_exporter_pro() {
          if(defined('GET_PREMIUM_THEME')){
@@ -641,65 +641,61 @@ class WPElemento_Importer_ThemeWhizzie {
              }
            }
          }
-       }
-      
+      }
+
       public function wpelemento_importer_pro_templates_api_category_wise() {
+        
+        $search_val = isset($_POST['search_val']) ? ($_POST['search_val']) : '';
+        $category_handle = isset($_POST['category_handle']) ? $_POST['category_handle'] : '';
 
-        $paged = isset($_POST['paged']) ? $_POST['paged'] : 1;
-        $category_id = isset($_POST['category_id']) ? $_POST['category_id'] : 0;
-        $search = isset($_POST['search_val']) ? $_POST['search_val'] : '';
-
-        $themes_array = array();
-
-        $endpoint = WPEI_THEME_LICENCE_ENDPOINT . 'get_premium_theme_details';
-        $body = [ 'paged' => $paged, 'category_id' => $category_id, 'search' => $search ];
-        $body = wp_json_encode($body);
-        $options = ['body' => $body, 'headers' => ['Content-Type' => 'application/json', ]];
-        $response = wp_remote_post($endpoint, $options);
-
-        if (!is_wp_error($response)) {
-          
-          $response_body = wp_remote_retrieve_body($response);
-          $response_body = json_decode($response_body);
-          
-          if ( isset($response_body->code) && $response_body->code == 200 ) {
-            if ( isset($response_body->data) && !empty($response_body->data) ) {
-
-              $themes_array['themes'] = $response_body->data;
-              $themes_array['total_pages'] = $response_body->total_pages;
-            }            
-          }
-        }
+        $themes_arr = $this->wpelemento_importer_pro_templates_api('', $category_handle, $search_val);
 
         $response = array( 
           'code' => 200, 
-          'data' => isset($themes_array['themes']) ? $themes_array['themes'] : array(),
-          'total_pages' => isset($themes_array['total_pages']) ? $themes_array['total_pages'] : 1
+          'data' => isset($themes_arr['themes']) ? $themes_arr['themes'] : array(),
+          'total_pages' => isset($themes_arr['total_pages']) ? $themes_arr['total_pages'] : 1
         );
         wp_send_json( $response );
         exit;
       }
-       
-      public function wpelemento_importer_pro_templates_api( $paged, $category_id, $search ){
+
+      public function wpelemento_importer_pro_templates_api( $cursor, $category, $search ){
+
+        $endpoint_url = WPEI_SHOPIFY_LICENCE_ENDPOINT . 'getFilteredProducts';
+
+        $remote_post_data = array(
+          'collectionHandle' => $category,
+          'productHandle' => $search,
+          'paginationParams' => array(
+            "first" => 12,
+            "afterCursor" => $cursor,
+            "beforeCursor" => "",
+            "reverse" => true
+          )
+        );
+
+        $body = wp_json_encode($remote_post_data);
+
+        $options = [
+            'body' => $body,
+            'headers' => [
+                'Content-Type' => 'application/json'
+            ]
+        ];
+        $response = wp_remote_post($endpoint_url, $options);
 
         $themes_array = array();
-
-        $endpoint = WPEI_THEME_LICENCE_ENDPOINT . 'get_premium_theme_details';
-        $body = [ 'paged' => $paged, 'category_id' => $category_id, 'search' => $search ];
-        $body = wp_json_encode($body);
-        $options = ['body' => $body, 'headers' => ['Content-Type' => 'application/json', ]];
-        $response = wp_remote_post($endpoint, $options);
 
         if (!is_wp_error($response)) {
           
           $response_body = wp_remote_retrieve_body($response);
           $response_body = json_decode($response_body);
           
-          if ( isset($response_body->code) && $response_body->code == 200 ) {
-            if ( isset($response_body->data) && !empty($response_body->data) ) {
+          if (isset($response_body->data) && !empty($response_body->data)) {
+            if (isset($response_body->data->products) && !empty($response_body->data->products)) {
 
-              $themes_array['themes'] = $response_body->data;
-              $themes_array['total_pages'] = $response_body->total_pages;
+              $themes_array['themes'] = $response_body->data->products;
+              $themes_array['total_pages'] = $response_body->data->pageInfo;
             }            
           }
         }
@@ -711,20 +707,22 @@ class WPElemento_Importer_ThemeWhizzie {
 
         $cat_array = array();
 
-        $endpoint = WPEI_THEME_LICENCE_ENDPOINT . 'get_premium_product_categories';
-        $options = ['headers' => ['Content-Type' => 'application/json', ]];
-        $response = wp_remote_get($endpoint, $options);
-
+        $endpoint_url = WPEI_SHOPIFY_LICENCE_ENDPOINT . 'getCollections';
+        $options = [
+          'body' => [],
+          'headers' => [
+              'Content-Type' => 'application/json'
+          ]
+        ];
+        $response = wp_remote_post($endpoint_url, $options);
+    
         if (!is_wp_error($response)) {
-          
           $response_body = wp_remote_retrieve_body($response);
           $response_body = json_decode($response_body);
-          
-          if ( isset($response_body->code) && $response_body->code == 200 ) {
-            if ( isset($response_body->data) && !empty($response_body->data) ) {
+  
+          if (isset($response_body->data) && !empty($response_body->data)) {
 
-              $cat_array = $response_body->data;
-            }
+            $cat_array = $response_body->data;
           }
         }
 
@@ -733,11 +731,11 @@ class WPElemento_Importer_ThemeWhizzie {
 
       public function pagination_load_content() {
         
-        $paged = isset($_POST['paged']) ? ($_POST['paged'] + 1) : 1;
-        $category_id = isset($_POST['category_id']) ? $_POST['category_id'] : 0;
-        $search = isset($_POST['search_val']) ? $_POST['search_val'] : '';
+        $search_val = isset($_POST['search_val']) ? ($_POST['search_val']) : '';
+        $cursor = isset($_POST['cursor']) ? ($_POST['cursor']) : '';
+        $category_handle = isset($_POST['category_handle']) ? $_POST['category_handle'] : '';
 
-        $themes_arr = $this->wpelemento_importer_pro_templates_api($paged, $category_id, $search);
+        $themes_arr = $this->wpelemento_importer_pro_templates_api($cursor, $category_handle, $search_val);
 
         $response = array( 
           'code' => 200, 
@@ -751,7 +749,8 @@ class WPElemento_Importer_ThemeWhizzie {
       public function wpelemento_importer_pro_templates($paged = 1, $category_id = '', $search = '') {
 
         $product_cat_arr = $this->get_premium_product_categories();
-        $themes_arr = $this->wpelemento_importer_pro_templates_api($paged, $category_id, $search); ?>
+        $themes_arr = $this->wpelemento_importer_pro_templates_api($paged, $category_id, $search);        
+        ?>
         <div class="main-grid-card-overlay"></div>
         <div class="main-grid-banner-parent">
           <div class="row my-5 align-items-center">
@@ -781,13 +780,17 @@ class WPElemento_Importer_ThemeWhizzie {
                 </button>
                 <ul class="dropdown-menu">
                   <li class="d-flex justify-content-space-between align-items-center">
-                      <a class="dropdown-item templates selected p-0" href="#" data-category="0"><?php echo esc_html('All'); ?></a>
+                      <a class="dropdown-item templates selected p-0" href="#" data-category=""><?php echo esc_html('All'); ?></a>
                   </li>
                   <?php foreach ( $product_cat_arr as $key => $single_cat ) {
-                    $count = $single_cat->count;
+                    $count = $single_cat->productsCount;
+
+                    if ( $single_cat->title == 'Free' || $single_cat->title == 'Home page' ) {
+                      continue;
+                    }
                     ?>
                     <li class="d-flex justify-content-space-between align-items-center">
-                      <a class="dropdown-item templates p-0" href="#" data-category="<?php echo esc_attr($single_cat->term_id);?>"><?php echo esc_html($single_cat->name); ?></a>
+                      <a class="dropdown-item templates p-0" href="#" data-category="<?php echo esc_attr($single_cat->handle);?>"><?php echo esc_html($single_cat->title); ?></a>
                       <p class="mb-0"><?php echo esc_html($count); ?></p>
                     </li>
                   <?php } ?>
@@ -806,15 +809,16 @@ class WPElemento_Importer_ThemeWhizzie {
             if (isset($themes_arr['themes'])) {
               foreach ( $themes_arr['themes'] as $key => $theme ) {
 
-                $product_permalink  = $theme->product_permalink;
-                $live_demo          = $theme->live_demo;
-                $thumbnail_url      = $theme->thumbnail_url;
-                $get_the_title      = $theme->get_the_title;
-                
-                $product_permalink = str_replace("https://preview.wpelemento.com/old_website/elementor/","https://www.wpelemento.com/products/",$product_permalink);
-                $product_permalink = rtrim($product_permalink, '/');
+                $product_obj = $theme->node;
+                        
+                if (isset($product_obj->inCollection) && !$product_obj->inCollection) {
+                    continue;
+                }
 
-                $live_demo = str_replace("www.wpelemento.com/demo/","preview.wpelemento.com/",$live_demo);
+                $live_demo = isset($theme->node->metafield->value) ? $theme->node->metafield->value : '';
+                $product_permalink = isset($theme->node->onlineStoreUrl) ? $theme->node->onlineStoreUrl : '';
+                $thumbnail_url = isset($theme->node->images->edges[0]->node->src) ? $theme->node->images->edges[0]->node->src : '';
+                $get_the_title = $product_obj->title;
                 ?>
   
                 <div class="main-grid-card-parent col-lg-4 col-md-6 col-12">
@@ -834,10 +838,12 @@ class WPElemento_Importer_ThemeWhizzie {
               <?php }
             } ?>
           </div>
-          <div class="main-grid-card-load-more-parent text-center my-2">
-            <input type="hidden" name="load_more" value="1">
-            <button class="btn btn-primary template_pagination"><?php echo esc_html('Load More'); ?></button>
-          </div>
+          <?php if($themes_arr['total_pages']->hasNextPage) { ?>
+            <div class="main-grid-card-load-more-parent text-center my-2">
+              <input type="hidden" name="load_more" value="<?php echo esc_attr(isset($themes_arr['total_pages']->endCursor) ? $themes_arr['total_pages']->endCursor : ''); ?>">
+              <button class="btn btn-primary template_pagination"><?php echo esc_html('Load More'); ?></button>
+            </div>
+          <?php } ?>
         </div>
       <?php }
 

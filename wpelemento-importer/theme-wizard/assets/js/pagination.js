@@ -1,13 +1,13 @@
 jQuery(document).ready(function($) {
-    
+
     $('.template_pagination').on('click', function(e) {
 
         $('.main-grid-card-parent-pulse').show();
         $('.main-grid-card-overlay').show();
 
-        var paged = $('[name="load_more"]').val();
+        var cursor = $('[name="load_more"]').val();
         const search_val = $('[name="search_themes"]').val();
-        const category_id = $('.dropdown-item.templates.selected').attr('data-category');
+        const category_handle = $('.dropdown-item.templates.selected').attr('data-category');
 
         $this = $(this);
 
@@ -16,9 +16,9 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: {
               action: 'pagination_load_content',
-              paged: paged,
+              cursor: cursor,
               search_val: search_val,
-              category_id: category_id
+              category_handle: category_handle
             },
             success: function(response) {
 
@@ -27,39 +27,46 @@ jQuery(document).ready(function($) {
                 
                 if ( response.code == 200 && response.data.length ) {
 
-                    var next_page = parseInt(paged)+1;
+                    var next_page = response.total_pages.hasNextPage;
 
-                    if (next_page == response.total_pages ) {
+                    if ( !next_page ) {
                         $this.hide();    
                     } else {
-                        $('[name="load_more"]').val( next_page );
+                        $('[name="load_more"]').val( response.total_pages.endCursor	 );
                     }
 
                     response.data.forEach((theme, i) => {
 
-                        let product_permalink = theme.product_permalink.replace("https://preview.wpelemento.com/old_website/elementor/", "https://www.wpelemento.com/products/");
-                        if (product_permalink.endsWith('/')) {
-                            product_permalink = product_permalink.slice(0, -1);
-                        }                        
+                        const product_node = theme.node;
+                        
+                        const imageUrl = product_node.images.edges[0]?.node?.src;
 
-                        const demo_link = theme.live_demo.replace("www.wpelemento.com/demo/", "preview.wpelemento.com/");
+                        let product_permalink = product_node.onlineStoreUrl;                        
+                        var demo_link = '';
+                        if (product_node?.metafield?.value) {
+                            demo_link = product_node.metafield.value;                               
+                        }
 
-                        $('.main-grid-card.row.theme-templates').append(`
-                            <div class="main-grid-card-parent col-lg-4 col-md-6 col-12">
-                                <div class="main-grid-card-parent-inner">
-                                    <div class="main-grid-card-parent-inner-image-head">
-                                        <img class="main-grid-card-parent-inner-image" src="`+ theme.thumbnail_url +`" width="100" height="100" alt="`+ theme.get_the_title +`">
-                                    </div>
-                                    <div class="main-grid-card-parent-inner-description">
-                                        <h3>`+ theme.get_the_title +`</h3>
-                                        <div class="main-grid-card-parent-inner-button">
-                                            <a target="_blank" href="`+ product_permalink +`" class="main-grid-card-parent-inner-button-buy">Buy Now</a>
-                                            <a target="_blank" href="`+ demo_link +`" class="main-grid-card-parent-inner-button-preview">Demo</a>
+                        if ( !product_node.hasOwnProperty('inCollection') || product_node?.inCollection) {
+
+                            $('.main-grid-card.row.theme-templates').append(`
+                                <div class="main-grid-card-parent col-lg-4 col-md-6 col-12">
+                                    <div class="main-grid-card-parent-inner">
+                                        <div class="main-grid-card-parent-inner-image-head">
+                                            <img class="main-grid-card-parent-inner-image" src="`+ imageUrl +`" width="100" height="100" alt="`+ product_node.title +`">
+                                        </div>
+                                        <div class="main-grid-card-parent-inner-description">
+                                            <h3>`+ product_node.title +`</h3>
+                                            <div class="main-grid-card-parent-inner-button">
+                                                <a target="_blank" href="`+ product_permalink +`" class="main-grid-card-parent-inner-button-buy">Buy Now</a>
+                                                <a target="_blank" href="`+ demo_link +`" class="main-grid-card-parent-inner-button-preview">Demo</a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        `);
+                            `);
+                        }
+
                     });
                 }
             },
@@ -69,59 +76,66 @@ jQuery(document).ready(function($) {
         });
     });
 
-    function templates_api_category_wise( category_id, search_val ) {
+    function templates_api_category_wise( category_handle, search_val ) {
 
         $.ajax({
             url: wpelemento_importer_pro_whizzie_params.ajaxurl,
             type: 'POST',
             data: {
               action: 'templates_api_category_wise',
-              paged: 1,
-              category_id: category_id,
+              category_handle: category_handle,
               search_val: search_val
             },
-            success: function(response) {
+            success: function(response) {                
 
                 $('.main-grid-card-parent-pulse').hide();
                 $('.main-grid-card-overlay').hide();
                 
                 if ( response.code == 200 && response.data.length ) {
 
-                    var next_page = 1;
+                    var next_page = response.total_pages.hasNextPage;
 
-                    if (next_page == response.total_pages ) {
+                    if ( !next_page ) {
                         $('.template_pagination').hide();
-                    } else {      
+                    } else {
                         $('.template_pagination').show();
-                        $('[name="load_more"]').val( next_page );
+                        $('[name="load_more"]').val( response.total_pages.endCursor	 );
                     }
                     
                     $('.main-grid-card.row.theme-templates').empty();
 
                     response.data.forEach((theme, i) => {
 
-                        let product_permalink = theme.product_permalink.replace("https://preview.wpelemento.com/old_website/elementor/", "https://www.wpelemento.com/products/");
-                        if (product_permalink.endsWith('/')) {
-                            product_permalink = product_permalink.slice(0, -1);
-                        }                        
-                        const demo_link = theme.live_demo.replace("www.wpelemento.com/demo/", "preview.wpelemento.com/");
+                        const product_node = theme.node;
+                        
+                        const imageUrl = product_node.images.edges[0]?.node?.src;
 
-                        $('.main-grid-card.row.theme-templates').append(`
-                            <div class="main-grid-card-parent col-lg-4 col-md-6 col-12">
-                                <div class="main-grid-card-parent-inner">
-                                    <div class="main-grid-card-parent-inner-image-head">
-                                        <img class="main-grid-card-parent-inner-image" src="`+ theme.thumbnail_url +`" width="100" height="100" alt="`+ theme.get_the_title +`">
-                                    </div>
-                                    <div class="main-grid-card-parent-inner-description">
-                                        <h3>`+ theme.get_the_title +`</h3>
-                                        <div class="main-grid-card-parent-inner-button">
-                                            <a target="_blank" href="`+ product_permalink +`" class="main-grid-card-parent-inner-button-buy">Buy Now</a>
-                                            <a target="_blank" href="`+ demo_link +`" class="main-grid-card-parent-inner-button-preview">Demo</a>
+                        let product_permalink = product_node.onlineStoreUrl;                        
+                        var demo_link = '';
+                        if (product_node?.metafield?.value) {
+                            demo_link = product_node.metafield.value;                               
+                        }
+
+                        if ( !product_node.hasOwnProperty('inCollection') || product_node?.inCollection) {
+
+                            $('.main-grid-card.row.theme-templates').append(`
+                                <div class="main-grid-card-parent col-lg-4 col-md-6 col-12">
+                                    <div class="main-grid-card-parent-inner">
+                                        <div class="main-grid-card-parent-inner-image-head">
+                                            <img class="main-grid-card-parent-inner-image" src="`+ imageUrl +`" width="100" height="100" alt="`+ product_node.title +`">
+                                        </div>
+                                        <div class="main-grid-card-parent-inner-description">
+                                            <h3>`+ product_node.title +`</h3>
+                                            <div class="main-grid-card-parent-inner-button">
+                                                <a target="_blank" href="`+ product_permalink +`" class="main-grid-card-parent-inner-button-buy">Buy Now</a>
+                                                <a target="_blank" href="`+ demo_link +`" class="main-grid-card-parent-inner-button-preview">Demo</a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        `);
+                            `);
+                        }
+
                     });
                 }
 
@@ -149,7 +163,6 @@ jQuery(document).ready(function($) {
     }    
 
     $('[name="search_themes"]').on('input', debounce(function() {
-        const category_id = $('.dropdown-item.templates.selected').attr('data-category');
         const search_val = $(this).val();
     
         if (search_val.length > 2) {
@@ -157,7 +170,7 @@ jQuery(document).ready(function($) {
             $('.main-grid-card-overlay').show();
         }
     
-        templates_api_category_wise(category_id, search_val);
+        templates_api_category_wise('', search_val);
     }, 300));
 
     $('.dropdown-item.templates').on('click', function(event) {
@@ -166,13 +179,12 @@ jQuery(document).ready(function($) {
         $('.dropdown-item.templates').removeClass('selected');
         $(this).addClass('selected');
 
-        const category_id = $(this).attr('data-category');
-        const search_val = $('[name="search_themes"]').val();
+        const category_handle = $(this).attr('data-category');
 
         $('.main-grid-card-parent-pulse').show();
         $('.main-grid-card-overlay').show();
 
-        templates_api_category_wise( category_id, search_val );
+        templates_api_category_wise( category_handle, '' );
     });
 
     $('#themeCouponCode').click(function() {

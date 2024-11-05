@@ -80,7 +80,7 @@ function get_filtered_products() {
 
     $options = ['body' => $body, 'headers' => ['Content-Type' => 'application/json', ]];
 
-    $response = wp_remote_post( WPEI_SHOPIFY_LICENCE_ENDPOINT . 'getFilteredProducts', $options);
+    $response = wp_remote_post( WPEI_SHOPIFY_LICENCE_ENDPOINT . 'getFilteredProductsModal', $options);
 
     if (is_wp_error($response)) {
         
