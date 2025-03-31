@@ -19,7 +19,7 @@ function premium_upsell_banner_admin_notice() {
 
 function premium_upsell_banner_notice_html(){
 
-    $endpoint = WPEI_THEME_LICENCE_ENDPOINT . 'get_premium_upsell_banner_theme_details';
+    $endpoint = WPEI_SHOPIFY_LICENCE_ENDPOINT . 'get_elemento_premium_theme_details';
     $body = ['theme_text_domain' => wp_get_theme()->get('TextDomain') ];
     $body = wp_json_encode($body);
     $options = ['body' => $body, 'headers' => ['Content-Type' => 'application/json', ]];
@@ -32,17 +32,13 @@ function premium_upsell_banner_notice_html(){
         $response_body = wp_remote_retrieve_body($response);
         $response_body = json_decode($response_body);
         $currency_symbol = $response_body->currency_symbol;
-
+        
         if (!empty($response_body->data)) {
             $product_data = $response_body->data[0];
 
             $product_title = $product_data->title;
             $product_price = $product_data->price;
             $product_permalink = $product_data->permalink;
-
-            $product_permalink = str_replace("https://preview.wpelemento.com/old_website/elementor/","https://www.wpelemento.com/products/",$product_permalink);
-
-            $product_permalink = rtrim($product_permalink, '/');
 
             $final_price = $currency_symbol.''.$product_price;
             

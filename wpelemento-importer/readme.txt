@@ -4,7 +4,7 @@ Tags: website builder, One click demo Import, templates
 Requires at least: 5.2
 Tested up to: 6.7.1
 Requires PHP: 7.2
-Stable tag: 0.5.6
+Stable tag: 0.5.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -108,7 +108,10 @@ By following these steps, you can efficiently set up your WordPress website usin
 
 == Changelog ==
 
-= 0.5.6 - 2025-21-01 =
+= 0.5.7 - 2025-31-03 =
+* **Fixes** -  Upsell Banner Minor Fixes.
+
+= 0.5.6 - 2025-16-01 =
 * **Fixes** -  Minor Fixes.
 
 = 0.5.5 - 2024-05-11 =
