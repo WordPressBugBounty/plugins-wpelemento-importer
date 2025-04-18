@@ -157,7 +157,7 @@ class WPElemento_Importer_ThemeWhizzie {
           wp_enqueue_script('wp-notify-popup', EDI_URL . 'theme-wizard/assets/js/notify.min.js');
         }
 
-        if ( $hook == 'quick-start_page_elemento-templates' ) {
+        if ( $hook == 'toplevel_page_elemento-templates' ) {
           wp_enqueue_script('theme-wizard-script');
           wp_enqueue_style('theme-wizard-fontawesome', EDI_URL . 'theme-wizard/assets/css/all.min.css');
           wp_enqueue_style('theme-wizard-style', EDI_URL . 'theme-wizard/assets/css/theme-wizard-style.css');
@@ -201,14 +201,25 @@ class WPElemento_Importer_ThemeWhizzie {
      * Make a modal screen for the wizard
      */
     public function menu_page() {
-      add_menu_page(esc_html($this->page_title), esc_html($this->page_title), 'manage_options', $this->page_slug, array($this, 'wpelemento_importer_pro_mostrar_guide'), 'dashicons-admin-plugins', 40);
-      add_submenu_page(
-        $this->page_slug,
-        'Templates',
-        'Templates',
-        'manage_options',
-        'elemento-templates',
-        array($this, 'wpelemento_importer_pro_templates')
+      
+      add_menu_page(
+        esc_html($this->page_title), 
+        esc_html($this->page_title), 
+        'manage_options', 
+        $this->page_slug, 
+        array($this, 'wpelemento_importer_pro_mostrar_guide'), 
+        'dashicons-admin-plugins', 
+        40
+      );
+      
+      add_menu_page(
+        'Templates', 
+        'Templates', 
+        'manage_options', 
+        'elemento-templates', 
+        array($this, 'wpelemento_importer_pro_templates'), 
+        'dashicons-admin-page', 
+        40
       );
     }
     public function activation_page() {

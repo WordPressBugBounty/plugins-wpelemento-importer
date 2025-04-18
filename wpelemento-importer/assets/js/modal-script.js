@@ -137,7 +137,7 @@ jQuery(document).ready(function($){
                                                   </div>
                                                   <div class="popup-left-btm-banner">
                                                     <h4>ELEMENTOR THEME BUNDLE</h4>
-                                                    <p>Get Access to 48+ Elementor Themes at an unbeatable price of just $79</p>
+                                                    <p>Get Access to 60+ Elementor Themes at an unbeatable price of just $79</p>
                                                     <a href="https://www.wpelemento.com/products/wordpress-theme-bundle" target="_blank">BUY NOW</a>
                                                     <img src="https://cdn.shopify.com/s/files/1/0640/0884/7520/files/bundle-banner-image.png?v=1723786884">
                                                   </div>
