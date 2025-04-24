@@ -3,7 +3,7 @@
   Plugin Name:       WPElemento Importer
   Plugin URI:        
   Description:       Effortlessly set up WordPress themes with WPelemento Importer. One-click demo imports, Elementor compatibility, and support for diverse themes.
-  Version:           0.5.9
+  Version:           0.6.0
   Requires at least: 5.2
   Requires PHP:      7.2
   Author:            wpelemento
@@ -38,12 +38,10 @@ define( 'WPELEMENTO_MAIN_URL', "https://preview.wpelemento.com/" );
 define( 'WPEI_THEME_LICENCE_ENDPOINT', 'https://preview.wpelemento.com/old_website/wp-json/ibtana-licence/v2/' );
 define( 'WPEI_SHOPIFY_LICENCE_ENDPOINT', 'https://license.wpelemento.com/api/public/' );
 
-add_action( 'after_setup_theme', 'wpelemento_importer_enqueue_plugins_files' );
+add_action( 'init', 'wpelemento_importer_enqueue_plugins_files' );
 function wpelemento_importer_enqueue_plugins_files() {
-  
-  require EDI_DIR .'theme-wizard/config.php';
   require EDI_DIR .'classes/bdi-notice.php';
   require EDI_DIR .'classes/upsell-notice.php';
   require EDI_DIR .'modal/modal.php';
 }
-
+require EDI_DIR .'theme-wizard/config.php';

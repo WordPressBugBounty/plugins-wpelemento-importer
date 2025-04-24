@@ -27,34 +27,34 @@ $wpelemento_importer_config['page_heading']	= 'WPElemento Importer';
 $wpelemento_importer_config['steps'] = array(
 	'intro' => array(
 		'id'            => 'intro',
-		'title'            => __('Welcome to WPElemento Importer', 'wpelemento-importer') ,
+		'title'            => 'Welcome to WPElemento Importer',
 		'icon'            => 'dashboard',
 		'view'            => 'get_step_intro', // Callback for content
 		'callback'        => 'do_next_step', // Callback for JS
-		'button_text'    => __('Start Now', 'wpelemento-importer'),
+		'button_text'    => 'Start Now',
 		'can_skip'        => false, // Show a skip button?
 		'icon_url'      => EDI_URL . 'theme-wizard/assets/images/battery.png'
 	),
 	'plugins' => array(
 		'id'			=> 'plugins',
-		'title'			=> __( 'Plugins', 'wpelemento-importer' ),
+		'title'			=> 'Plugins',
 		'icon'			=> 'admin-plugins',
-		'button_text'	=> __( 'Install Plugins', 'wpelemento-importer' ),
+		'button_text'	=> 'Install Plugins',
 		'can_skip'		=> true,
 		'icon_url'      => EDI_URL . 'theme-wizard/assets/images/plugin.png'
 	),
 	'widgets' => array(
 		'id'			=> 'widgets',
-		'title'			=> __( 'Demo Importer', 'wpelemento-importer' ),
+		'title'			=> 'Demo Importer',
 		'icon'			=> 'welcome-widgets-menus',
 		'view'			=> 'get_step_widgets',
 		'callback'		=> 'install_widgets',
-		'button_text'	=> __( 'Import Demo', 'wpelemento-importer' ),
+		'button_text'	=> 'Import Demo',
 		'can_skip'		=> true
 	),
 	'done' => array(
 		'id'			=> 'done',
-		'title'			=> __( 'All Done', 'wpelemento-importer' ),
+		'title'			=> 'All Done',
 		'icon'			=> 'yes',
 		'icon_url'      => EDI_URL . 'theme-wizard/assets/images/check-mark.png'
 	)
