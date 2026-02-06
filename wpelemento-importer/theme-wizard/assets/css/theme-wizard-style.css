@@ -442,6 +442,7 @@ ul.wee-whizzie-nav .dashicons {
 .step-loading .spinner{
     width: 172px !important;
     background: none !important;
+    animation: none;
 }
 .step-loading .spinner img{
     position: relative;

@@ -291,7 +291,15 @@ var Whizzie = (function($) {
         ajax_callback_customizer = function(response) {
           console.log('response', response);
           jQuery('.wz-btn-customizer').attr('href', response.edit_post_link);
-          do_next_step();
+          
+          // Check if this is a free theme and should redirect
+          if (wpelemento_importer_pro_whizzie_params.is_free_theme) {
+            // Redirect immediately for free themes without showing completion page
+            window.location.href = wpelemento_importer_pro_whizzie_params.redirect_url;
+          } else {
+            // Show normal completion page for premium themes
+            do_next_step();
+          }
         }
 
         import_widgets();

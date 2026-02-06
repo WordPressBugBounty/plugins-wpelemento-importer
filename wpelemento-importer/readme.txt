@@ -4,7 +4,7 @@ Tags: website builder, One click demo Import, templates
 Requires at least: 5.2
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 0.6.1
+Stable tag: 0.6.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -107,6 +107,18 @@ imports. Empower your creativity and streamline your workflow with WPelemento Im
 By following these steps, you can efficiently set up your WordPress website using WP Elemento themes with WPelemento Importer. This streamlined process ensures that even users with minimal technical expertise can achieve professional results quickly and easily
 
 == Changelog ==
+
+= 0.6.5 - 2026-19-01 =
+* **Security** - Fixed missing permission checks in AJAX actions.
+
+= 0.6.4 - 2026-17-01 =
+* **Updated** - Get Started Redirection.
+
+= 0.6.3 - 2025-06-11 =
+* **Fixes** - Minor css fixes.
+
+= 0.6.2 - 2025-15-10 =
+* **Fixes** - Minor bug fixes.
 
 = 0.6.1 - 2025-21-05 =
 * **Added** -  Free theme installation functionality.

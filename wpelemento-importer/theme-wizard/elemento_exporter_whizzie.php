@@ -139,8 +139,29 @@ class WPElemento_Importer_ThemeWhizzie {
     }
     public function enqueue_scripts($hook) {
 
+      // Get theme data for localization
+      $current_theme = wp_get_theme();
+      $theme_author = $current_theme->get('Author');
+      $theme_text_domain = $current_theme->get('TextDomain');
+      $is_wpelemento_author = (strtolower($theme_author) === 'wpelemento');
+      $free_theme_constant = strtoupper(str_replace('-', '_', $theme_text_domain)) . '_FREE_THEME_DOC';
+      $has_free_theme_constant = defined($free_theme_constant);
+      $is_free_theme = $is_wpelemento_author && $has_free_theme_constant;
+      
+      $theme_redirect_url = site_url();
+      if ($is_free_theme) {
+        $theme_slug = str_replace('-', '_', $theme_text_domain);
+        $theme_redirect_url = admin_url('themes.php?page=' . $theme_slug . '_about&imported=true');
+      }
+
       wp_register_script('theme-wizard-script', EDI_URL . 'theme-wizard/assets/js/theme-wizard-script.js', array('jquery'), time());
-      wp_localize_script('theme-wizard-script', 'wpelemento_importer_pro_whizzie_params', array('ajaxurl' => esc_url(admin_url('admin-ajax.php')), 'wpnonce' => wp_create_nonce('whizzie_nonce'), 'verify_text' => esc_html('verifying', 'wpelemento-importer')));
+      wp_localize_script('theme-wizard-script', 'wpelemento_importer_pro_whizzie_params', array(
+        'ajaxurl' => esc_url(admin_url('admin-ajax.php')), 
+        'wpnonce' => wp_create_nonce('whizzie_nonce'), 
+        'verify_text' => esc_html('verifying', 'wpelemento-importer'),
+        'is_free_theme' => $is_free_theme,
+        'redirect_url' => esc_url($theme_redirect_url)
+      ));
 
         if ( $hook == 'toplevel_page_' . $this->page_slug ) {
           wp_enqueue_style('theme-wizard-style', EDI_URL . 'theme-wizard/assets/css/theme-wizard-style.css');
@@ -713,7 +734,22 @@ class WPElemento_Importer_ThemeWhizzie {
     /**
      * Print the content for the final step
      */
-     public function get_step_done() { ?>
+     public function get_step_done() { 
+       $current_theme = wp_get_theme();
+       $theme_author = $current_theme->get('Author');
+       $theme_text_domain = $current_theme->get('TextDomain');
+       
+       $is_wpelemento_author = (strtolower($theme_author) === 'wpelemento');
+       
+       $free_theme_constant = strtoupper(str_replace('-', '_', $theme_text_domain)) . '_FREE_THEME_DOC';
+       $has_free_theme_constant = defined($free_theme_constant);
+       
+       $visit_site_url = site_url();
+       if ($is_wpelemento_author && $has_free_theme_constant) {
+         $theme_slug = str_replace('-', '_', $theme_text_domain);
+         $visit_site_url = admin_url('themes.php?page=' . $theme_slug . '_about&imported=true');
+       }
+       ?>
        <div class="wp-setup-finish">
          <p>
            <?php echo esc_html('Your demo content has been imported successfully . Click on the finish button for more information.'); ?>
@@ -721,7 +757,7 @@ class WPElemento_Importer_ThemeWhizzie {
          <div class="finish-buttons">
            <a href="<?php echo esc_url(admin_url('/customize.php')); ?>" class="wz-btn-customizer" target="_blank"><?php esc_html_e('Customize Your Demo', 'wpelemento-importer') ?></a>
            <a href="" class="wz-btn-builder" target="_blank"><?php esc_html_e('Customize Your Demo', 'wpelemento-importer'); ?></a>
-           <a href="<?php echo esc_url(site_url()); ?>" class="wz-btn-visit-site" target="_blank"><?php esc_html_e('Visit Your Site', 'wpelemento-importer'); ?></a>
+           <a href="<?php echo esc_url($visit_site_url); ?>" class="wz-btn-visit-site" target="_blank"><?php esc_html_e('Visit Your Site', 'wpelemento-importer'); ?></a>
          </div>
          <div class="wp-finish-btn">
            <a href="<?php echo esc_url(admin_url()); ?>" class="button button-primary" onclick="openCity(event, 'theme_info')" data-tab="theme_info" >Finish</a>
@@ -755,7 +791,8 @@ class WPElemento_Importer_ThemeWhizzie {
            }
          }
        }
-       return $plugins;
+
+      return apply_filters('wpelemento_importer_plugins_list', $plugins);
      }
      public function setup_plugins() {
        if (!check_ajax_referer('whizzie_nonce', 'wpnonce') || empty($_POST['slug'])) {
@@ -1299,6 +1336,14 @@ class WPElemento_Importer_ThemeWhizzie {
     }
     // this code is for demo elementor importer start //
     function wpelemento_importer_setup_elementor() {
+      
+      if (!check_ajax_referer('whizzie_nonce', 'wpnonce', false)) {
+          wp_send_json_error(array('message' => esc_html__('Nonce verification failed', 'wpelemento-importer')));
+      }
+      
+      if (!current_user_can('manage_options')) {
+          wp_send_json_error(array('message' => esc_html__('Insufficient permissions. Administrator access required.', 'wpelemento-importer')));
+      }
 
       $elemento_themes = $this->get_elemento_themes();
 
