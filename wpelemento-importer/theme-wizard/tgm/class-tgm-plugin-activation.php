@@ -8,7 +8,7 @@
  * or theme author for support.
  *
  * @package   TGM-Plugin-Activation
- * @version   2.6.1 for parent theme WPElemento Importer for publication on WordPress.org
+ * @version   2.6.1
  * @link      http://tgmpluginactivation.com/
  * @author    Thomas Griffin, Gary Jones, Juliette Reinders Folmer
  * @copyright Copyright (c) 2011, Thomas Griffin
@@ -31,6 +31,11 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	return;
+}
 
 if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 
@@ -55,7 +60,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 *
 		 * @const string Version number.
 		 */
-		const TGMPA_VERSION = '2.6.1';
+		const WPELEMENTO_IMPORTER_TGMPA_VERSION = '2.6.1';
 
 		/**
 		 * Regular expression to test if a URL is a WP plugin repo URL.
@@ -242,7 +247,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 
 		/**
 		 * Adds a reference of this object to $instance, populates default strings,
-		 * does the tgmpa_init action hook, and hooks in the interactions to init.
+		 * does the wpelemento_importer_tgmpa_init action hook, and hooks in the interactions to init.
 		 *
 		 * {@internal This method should be `protected`, but as too many TGMPA implementations
 		 * haven't upgraded beyond v2.3.6 yet, this gives backward compatibility issues.
@@ -257,9 +262,15 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 			$this->wp_version = $GLOBALS['wp_version'];
 
 			// Announce that the class is ready, and pass the object (for advanced use).
-			do_action_ref_array( 'tgmpa_init', array( $this ) );
-
-
+		do_action_ref_array( 'wpelemento_importer_tgmpa_init', array( $this ) );
+			/*
+			 * Load our text domain and allow for overloading the fall-back file.
+			 *
+			 * {@internal IMPORTANT! If this code changes, review the regex in the custom TGMPA
+			 * generator on the website.}}
+			 */
+			add_action( 'init', array( $this, 'load_textdomain' ), 5 );
+			add_filter( 'load_textdomain_mofile', array( $this, 'overload_textdomain_mofile' ), 10, 2 );
 
 			// When the rest of WP has loaded, kick-start the rest of the class.
 			add_action( 'init', array( $this, 'init' ) );
@@ -282,6 +293,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 *               (Inside this class context, the __set() method if not used as there is direct access.)
 		 */
 		public function __set( $name, $value ) {
+			// phpcs:ignore Squiz.PHP.NonExecutableCode.ReturnNotRequired -- See explanation above.
 			return;
 		}
 
@@ -324,77 +336,77 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 
 			// Load class strings.
 			$this->strings = array(
-				'page_title'                      => __( 'Install Required Plugins', 'wpelemento-importer' ),
-				'menu_title'                      => __( 'Install Plugins', 'wpelemento-importer' ),
+				'page_title'                      => __( 'Install Required Plugins', 'film-production' ),
+				'menu_title'                      => __( 'Install Plugins', 'film-production' ),
 				/* translators: %s: plugin name. */
-				'installing'                      => __( 'Installing Plugin: %s', 'wpelemento-importer' ),
+				'installing'                      => __( 'Installing Plugin: %s', 'film-production' ),
 				/* translators: %s: plugin name. */
-				'updating'                        => __( 'Updating Plugin: %s', 'wpelemento-importer' ),
-				'oops'                            => __( 'Something went wrong with the plugin API.', 'wpelemento-importer' ),
+				'updating'                        => __( 'Updating Plugin: %s', 'film-production' ),
+				'oops'                            => __( 'Something went wrong with the plugin API.', 'film-production' ),
+				/* translators: 1: plugin name(s). */
 				'notice_can_install_required'     => _n_noop(
-					/* translators: 1: plugin name(s). */
 					'This theme requires the following plugin: %1$s.',
 					'This theme requires the following plugins: %1$s.',
-					'wpelemento-importer'
+					'film-production'
 				),
+				/* translators: 1: plugin name(s). */
 				'notice_can_install_recommended'  => _n_noop(
-					/* translators: 1: plugin name(s). */
 					'This theme recommends the following plugin: %1$s.',
 					'This theme recommends the following plugins: %1$s.',
-					'wpelemento-importer'
+					'film-production'
 				),
+				/* translators: 1: plugin name(s). */
 				'notice_ask_to_update'            => _n_noop(
-					/* translators: 1: plugin name(s). */
 					'The following plugin needs to be updated to its latest version to ensure maximum compatibility with this theme: %1$s.',
 					'The following plugins need to be updated to their latest version to ensure maximum compatibility with this theme: %1$s.',
-					'wpelemento-importer'
+					'film-production'
 				),
+				/* translators: 1: plugin name(s). */
 				'notice_ask_to_update_maybe'      => _n_noop(
-					/* translators: 1: plugin name(s). */
 					'There is an update available for: %1$s.',
 					'There are updates available for the following plugins: %1$s.',
-					'wpelemento-importer'
+					'film-production'
 				),
+				/* translators: 1: plugin name(s). */
 				'notice_can_activate_required'    => _n_noop(
-					/* translators: 1: plugin name(s). */
 					'The following required plugin is currently inactive: %1$s.',
 					'The following required plugins are currently inactive: %1$s.',
-					'wpelemento-importer'
+					'film-production'
 				),
+				/* translators: 1: plugin name(s). */
 				'notice_can_activate_recommended' => _n_noop(
-					/* translators: 1: plugin name(s). */
 					'The following recommended plugin is currently inactive: %1$s.',
 					'The following recommended plugins are currently inactive: %1$s.',
-					'wpelemento-importer'
+					'film-production'
 				),
 				'install_link'                    => _n_noop(
 					'Begin installing plugin',
 					'Begin installing plugins',
-					'wpelemento-importer'
+					'film-production'
 				),
 				'update_link'                     => _n_noop(
 					'Begin updating plugin',
 					'Begin updating plugins',
-					'wpelemento-importer'
+					'film-production'
 				),
 				'activate_link'                   => _n_noop(
 					'Begin activating plugin',
 					'Begin activating plugins',
-					'wpelemento-importer'
+					'film-production'
 				),
-				'return'                          => __( 'Return to Required Plugins Installer', 'wpelemento-importer' ),
-				'dashboard'                       => __( 'Return to the Dashboard', 'wpelemento-importer' ),
-				'plugin_activated'                => __( 'Plugin activated successfully.', 'wpelemento-importer' ),
-				'activated_successfully'          => __( 'The following plugin was activated successfully:', 'wpelemento-importer' ),
+				'return'                          => __( 'Return to Required Plugins Installer', 'film-production' ),
+				'dashboard'                       => __( 'Return to the Dashboard', 'film-production' ),
+				'plugin_activated'                => __( 'Plugin activated successfully.', 'film-production' ),
+				'activated_successfully'          => __( 'The following plugin was activated successfully:', 'film-production' ),
 				/* translators: 1: plugin name. */
-				'plugin_already_active'           => __( 'No action taken. Plugin %1$s was already active.', 'wpelemento-importer' ),
+				'plugin_already_active'           => __( 'No action taken. Plugin %1$s was already active.', 'film-production' ),
 				/* translators: 1: plugin name. */
-				'plugin_needs_higher_version'     => __( 'Plugin not activated. A higher version of %s is needed for this theme. Please update the plugin.', 'wpelemento-importer' ),
+				'plugin_needs_higher_version'     => __( 'Plugin not activated. A higher version of %s is needed for this theme. Please update the plugin.', 'film-production' ),
 				/* translators: 1: dashboard link. */
-				'complete'                        => __( 'All plugins installed and activated successfully. %1$s', 'wpelemento-importer' ),
-				'dismiss'                         => __( 'Dismiss this notice', 'wpelemento-importer' ),
-				'notice_cannot_install_activate'  => __( 'There are one or more required or recommended plugins to install, update or activate.', 'wpelemento-importer' ),
-				'contact_admin'                   => __( 'Please contact the administrator of this site for help.', 'wpelemento-importer' ),
+				'complete'                        => __( 'All plugins installed and activated successfully. %1$s', 'film-production' ),
+				'dismiss'                         => __( 'Dismiss this notice', 'film-production' ),
+				'notice_cannot_install_activate'  => __( 'There are one or more required or recommended plugins to install, update or activate.', 'film-production' ),
+				'contact_admin'                   => __( 'Please contact the administrator of this site for help.', 'film-production' ),
 			);
 
 			do_action( 'wpelemento_importer_tgmpa_register' );
@@ -407,7 +419,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 			}
 
 			// Set up the menu and notices if we still have outstanding actions.
-			if ( true !== $this->is_tgmpa_complete() ) {
+			if ( true !== $this->is_wpelemento_importer_tgmpa_complete() ) {
 				// Sort the plugins.
 				array_multisort( $this->sort_order, SORT_ASC, $this->plugins );
 
@@ -444,13 +456,94 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 			if ( true === $this->has_forced_deactivation ) {
 				add_action( 'switch_theme', array( $this, 'force_deactivation' ) );
 			}
+
+			// Add CSS for the TGMPA admin page.
+			add_action( 'admin_head', array( $this, 'admin_css' ) );
 		}
 
+		/**
+		 * Load translations.
+		 *
+		 * @since 2.6.0
+		 *
+		 * (@internal Uses `load_theme_textdomain()` rather than `load_plugin_textdomain()` to
+		 * get round the different ways of handling the path and deprecated notices being thrown
+		 * and such. For plugins, the actual file name will be corrected by a filter.}}
+		 *
+		 * {@internal IMPORTANT! If this function changes, review the regex in the custom TGMPA
+		 * generator on the website.}}
+		 */
+		public function load_textdomain() {
+			if ( is_textdomain_loaded( 'film-production' ) ) {
+				return;
+			}
 
+			if ( false !== strpos( __FILE__, WP_PLUGIN_DIR ) || false !== strpos( __FILE__, WPMU_PLUGIN_DIR ) ) {
+				// Plugin, we'll need to adjust the file name.
+				add_action( 'load_textdomain_mofile', array( $this, 'correct_plugin_mofile' ), 10, 2 );
+				load_theme_textdomain( 'film-production', dirname( __FILE__ ) . '/languages' );
+				remove_action( 'load_textdomain_mofile', array( $this, 'correct_plugin_mofile' ), 10 );
+			} else {
+				load_theme_textdomain( 'film-production', dirname( __FILE__ ) . '/languages' );
+			}
+		}
 
+		/**
+		 * Correct the .mo file name for (must-use) plugins.
+		 *
+		 * Themese use `/path/{locale}.mo` while plugins use `/path/{text-domain}-{locale}.mo`.
+		 *
+		 * {@internal IMPORTANT! If this function changes, review the regex in the custom TGMPA
+		 * generator on the website.}}
+		 *
+		 * @since 2.6.0
+		 *
+		 * @param string $mofile Full path to the target mofile.
+		 * @param string $domain The domain for which a language file is being loaded.
+		 * @return string $mofile
+		 */
+		public function correct_plugin_mofile( $mofile, $domain ) {
+			// Exit early if not our domain (just in case).
+			if ( 'film-production' !== $domain ) {
+				return $mofile;
+			}
+			return preg_replace( '`/([a-z]{2}_[A-Z]{2}.mo)$`', '/tgmpa-$1', $mofile );
+		}
 
+		/**
+		 * Potentially overload the fall-back translation file for the current language.
+		 *
+		 * WP, by default since WP 3.7, will load a local translation first and if none
+		 * can be found, will try and find a translation in the /wp-content/languages/ directory.
+		 * As this library is theme/plugin agnostic, translation files for TGMPA can exist both
+		 * in the WP_LANG_DIR /plugins/ subdirectory as well as in the /themes/ subdirectory.
+		 *
+		 * This method makes sure both directories are checked.
+		 *
+		 * {@internal IMPORTANT! If this function changes, review the regex in the custom TGMPA
+		 * generator on the website.}}
+		 *
+		 * @since 2.6.0
+		 *
+		 * @param string $mofile Full path to the target mofile.
+		 * @param string $domain The domain for which a language file is being loaded.
+		 * @return string $mofile
+		 */
+		public function overload_textdomain_mofile( $mofile, $domain ) {
+			// Exit early if not our domain, not a WP_LANG_DIR load or if the file exists and is readable.
+			if ( 'film-production' !== $domain || false === strpos( $mofile, WP_LANG_DIR ) || @is_readable( $mofile ) ) {
+				return $mofile;
+			}
 
-
+			// Current fallback file is not valid, let's try the alternative option.
+			if ( false !== strpos( $mofile, '/themes/' ) ) {
+				return str_replace( '/themes/', '/plugins/', $mofile );
+			} elseif ( false !== strpos( $mofile, '/plugins/' ) ) {
+				return str_replace( '/plugins/', '/themes/', $mofile );
+			} else {
+				return $mofile;
+			}
+		}
 
 		/**
 		 * Hook in plugin action link filters for the WP native plugins page.
@@ -518,9 +611,9 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		public function filter_plugin_action_links_update( $actions ) {
 			$actions['update'] = sprintf(
 				'<a href="%1$s" title="%2$s" class="edit">%3$s</a>',
-				esc_url( $this->get_wpelemento_importer_tgmpa_status_url( 'update' ) ),
-				esc_attr__( 'This plugin needs to be updated to be compatible with your theme.', 'wpelemento-importer' ),
-				esc_html__( 'Update Required', 'wpelemento-importer' )
+				esc_url( $this->get_tgmpa_status_url( 'update' ) ),
+				esc_attr__( 'This plugin needs to be updated to be compatible with your theme.', 'film-production' ),
+				esc_html__( 'Update Required', 'film-production' )
 			);
 
 			return $actions;
@@ -550,7 +643,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 * @return null Returns early if not the TGMPA page.
 		 */
 		public function admin_init() {
-			if ( ! $this->is_tgmpa_page() ) {
+			if ( ! $this->is_wpelemento_importer_tgmpa_page() ) {
 				return;
 			}
 
@@ -560,17 +653,19 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 
 				wp_enqueue_style( 'plugin-install' );
 
-				global $wpei_tab, $body_id;
+				global $tab, $body_id;
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- WP requirement.
 				$body_id = 'plugin-information';
-				// @codingStandardsIgnoreStart
-				$wpei_tab     = 'plugin-information';
-				// @codingStandardsIgnoreEnd
+
+				// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Overriding the WP global is the point.
+				$tab = 'plugin-information';
 
 				install_plugin_information();
 
 				exit;
 			}
 		}
+
 		/**
 		 * Enqueue thickbox scripts/styles for plugin info.
 		 *
@@ -587,6 +682,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 				add_thickbox();
 			}
 		}
+
 		/**
 		 * Adds submenu page if there are plugin actions to take.
 		 *
@@ -609,7 +705,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 			}
 
 			$args = apply_filters(
-				'tgmpa_admin_menu_args',
+				'wpelemento_importer_tgmpa_admin_menu_args',
 				array(
 					'parent_slug' => $this->parent_slug,                     // Parent Menu slug.
 					'page_title'  => $this->strings['page_title'],           // Page title.
@@ -622,6 +718,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 
 			$this->add_admin_menu( $args );
 		}
+
 		/**
 		 * Add the menu item.
 		 *
@@ -633,8 +730,17 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 * @param array $args Menu item configuration.
 		 */
 		protected function add_admin_menu( array $args ) {
-			$this->page_hook = add_theme_page( $args['page_title'], $args['menu_title'], $args['capability'], $args['menu_slug'], $args['function'] );
+			if ( has_filter( 'wpelemento_importer_tgmpa_admin_menu_use_add_theme_page' ) ) {
+				_deprecated_function( 'The "wpelemento_importer_tgmpa_admin_menu_use_add_theme_page" filter', '2.5.0', esc_html__( 'Set the parent_slug config variable instead.', 'film-production' ) );
+			}
+
+			if ( 'themes.php' === $this->parent_slug ) {
+				$this->page_hook = call_user_func( 'add_theme_page', $args['page_title'], $args['menu_title'], $args['capability'], $args['menu_slug'], $args['function'] );
+			} else {
+				$this->page_hook = call_user_func( 'add_submenu_page', $args['parent_slug'], $args['page_title'], $args['menu_title'], $args['capability'], $args['menu_slug'], $args['function'] );
+			}
 		}
+
 		/**
 		 * Echoes plugin installation form.
 		 *
@@ -648,7 +754,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 */
 		public function install_plugins_page() {
 			// Store new instance of plugin table in object.
-			$plugin_table = new WPELEMENTO_IMPORTER_TGMPA_List_Table;
+			$plugin_table = new WPELEMENTO_IMPORTER_TGMPA_List_Table();
 
 			// Return early if processing a plugin installation action.
 			if ( ( ( 'wpelemento-importer-tgmpa-bulk-install' === $plugin_table->current_action() || 'wpelemento-importer-tgmpa-bulk-update' === $plugin_table->current_action() ) && $plugin_table->process_bulk_actions() ) || $this->do_plugin_install() ) {
@@ -712,7 +818,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 			}
 
 			// Was an install or upgrade action link clicked?
-			if ( ( isset( $_GET['tgmpa-install'] ) && 'install-plugin' === $_GET['tgmpa-install'] ) || ( isset( $_GET['tgmpa-update'] ) && 'update-plugin' === $_GET['tgmpa-update'] ) ) {
+			if ( ( isset( $_GET['wpelemento-importer-tgmpa-install'] ) && 'install-plugin' === $_GET['wpelemento-importer-tgmpa-install'] ) || ( isset( $_GET['wpelemento-importer-tgmpa-update'] ) && 'update-plugin' === $_GET['wpelemento-importer-tgmpa-update'] ) ) {
 
 				$install_type = 'install';
 				if ( isset( $_GET['tgmpa-update'] ) && 'update-plugin' === $_GET['tgmpa-update'] ) {
@@ -728,7 +834,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 							'plugin'                 => urlencode( $slug ),
 							'tgmpa-' . $install_type => $install_type . '-plugin',
 						),
-						$this->get_tgmpa_url()
+						$this->get_wpelemento_importer_tgmpa_url()
 					),
 					'tgmpa-' . $install_type,
 					'tgmpa-nonce'
@@ -736,7 +842,8 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 
 				$method = ''; // Leave blank so WP_Filesystem can populate it as necessary.
 
-				if ( false === ( $creds = request_filesystem_credentials( esc_url_raw( $url ), $method, false, false, array() ) ) ) {
+				$creds = request_filesystem_credentials( esc_url_raw( $url ), $method, false, false, array() );
+				if ( false === $creds ) {
 					return true;
 				}
 
@@ -793,7 +900,9 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 
 				if ( 'update' === $install_type ) {
 					// Inject our info into the update transient.
-					$to_inject                    = array( $slug => $this->plugins[ $slug ] );
+					$to_inject                    = array(
+						$slug => $this->plugins[ $slug ],
+					);
 					$to_inject[ $slug ]['source'] = $source;
 					$this->inject_update_info( $to_inject );
 
@@ -819,15 +928,15 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 				$this->show_wpelemento_importer_tgmpa_version();
 
 				// Display message based on if all plugins are now active or not.
-				if ( $this->is_tgmpa_complete() ) {
-					echo '<p>', sprintf( esc_html( $this->strings['complete'] ), '<a href="' . esc_url( self_admin_url() ) . '">' . esc_html__( 'Return to the Dashboard', 'wpelemento-importer' ) . '</a>' ), '</p>';
+				if ( $this->is_wpelemento_importer_tgmpa_complete() ) {
+					echo '<p>', sprintf( esc_html( $this->strings['complete'] ), '<a href="' . esc_url( self_admin_url() ) . '">' . esc_html( $this->strings['dashboard'] ) . '</a>' ), '</p>';
 					echo '<style type="text/css">#adminmenu .wp-submenu li.current { display: none !important; }</style>';
 				} else {
-					echo '<p><a href="', esc_url( $this->get_tgmpa_url() ), '" target="_parent">', esc_html( $this->strings['return'] ), '</a></p>';
+					echo '<p><a href="', esc_url( $this->get_wpelemento_importer_tgmpa_url() ), '" target="_parent">', esc_html( $this->strings['return'] ), '</a></p>';
 				}
 
 				return true;
-			} elseif ( isset( $this->plugins[ $slug ]['file_path'], $_GET['tgmpa-activate'] ) && 'activate-plugin' === $_GET['tgmpa-activate'] ) {
+			} elseif ( isset( $this->plugins[ $slug ]['file_path'], $_GET['wpelemento-importer-tgmpa-activate'] ) && 'activate-plugin' === $_GET['wpelemento-importer-tgmpa-activate'] ) {
 				// Activate action link was clicked.
 				check_admin_referer( 'tgmpa-activate', 'tgmpa-nonce' );
 
@@ -850,14 +959,14 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 			$repo_updates = get_site_transient( 'update_plugins' );
 
 			if ( ! is_object( $repo_updates ) ) {
-				$repo_updates = new stdClass;
+				$repo_updates = new stdClass();
 			}
 
 			foreach ( $plugins as $slug => $plugin ) {
 				$file_path = $plugin['file_path'];
 
 				if ( empty( $repo_updates->response[ $file_path ] ) ) {
-					$repo_updates->response[ $file_path ] = new stdClass;
+					$repo_updates->response[ $file_path ] = new stdClass();
 				}
 
 				// We only really need to set package, but let's do all we can in case WP changes something.
@@ -890,7 +999,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 * @return string $source
 		 */
 		public function maybe_adjust_source_dir( $source, $remote_source, $upgrader ) {
-			if ( ! $this->is_tgmpa_page() || ! is_object( $GLOBALS['wp_filesystem'] ) ) {
+			if ( ! $this->is_wpelemento_importer_tgmpa_page() || ! is_object( $GLOBALS['wp_filesystem'] ) ) {
 				return $source;
 			}
 
@@ -927,10 +1036,24 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 					if ( true === $GLOBALS['wp_filesystem']->move( $from_path, $to_path ) ) {
 						return trailingslashit( $to_path );
 					} else {
-						return new WP_Error( 'rename_failed', esc_html__( 'The remote plugin package does not contain a folder with the desired slug and renaming did not work.', 'wpelemento-importer' ) . ' ' . esc_html__( 'Please contact the plugin provider and ask them to package their plugin according to the WordPress guidelines.', 'wpelemento-importer' ), array( 'found' => $subdir_name, 'expected' => $desired_slug ) );
+						return new WP_Error(
+							'rename_failed',
+							esc_html__( 'The remote plugin package does not contain a folder with the desired slug and renaming did not work.', 'film-production' ) . ' ' . esc_html__( 'Please contact the plugin provider and ask them to package their plugin according to the WordPress guidelines.', 'film-production' ),
+							array(
+								'found'    => $subdir_name,
+								'expected' => $desired_slug,
+							)
+						);
 					}
 				} elseif ( empty( $subdir_name ) ) {
-					return new WP_Error( 'packaged_wrong', esc_html__( 'The remote plugin package consists of more than one file, but the files are not packaged in a folder.', 'wpelemento-importer' ) . ' ' . esc_html__( 'Please contact the plugin provider and ask them to package their plugin according to the WordPress guidelines.', 'wpelemento-importer' ), array( 'found' => $subdir_name, 'expected' => $desired_slug ) );
+					return new WP_Error(
+						'packaged_wrong',
+						esc_html__( 'The remote plugin package consists of more than one file, but the files are not packaged in a folder.', 'film-production' ) . ' ' . esc_html__( 'Please contact the plugin provider and ask them to package their plugin according to the WordPress guidelines.', 'film-production' ),
+						array(
+							'found'    => $subdir_name,
+							'expected' => $desired_slug,
+						)
+					);
 				}
 			}
 
@@ -954,14 +1077,15 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 
 				if ( is_wp_error( $activate ) ) {
 					echo '<div id="message" class="error"><p>', wp_kses_post( $activate->get_error_message() ), '</p></div>',
-						'<p><a href="', esc_url( $this->get_tgmpa_url() ), '" target="_parent">', esc_html( $this->strings['return'] ), '</a></p>';
+						'<p><a href="', esc_url( $this->get_wpelemento_importer_tgmpa_url() ), '" target="_parent">', esc_html( $this->strings['return'] ), '</a></p>';
 
 					return false; // End it here if there is an error with activation.
 				} else {
 					if ( ! $automatic ) {
 						// Make sure message doesn't display again if bulk activation is performed
 						// immediately after a single activation.
-						if ( ! isset( $_POST['action'] ) ) { // WPCS: CSRF OK.
+						// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Not using the superglobal.
+						if ( ! isset( $_POST['action'] ) ) {
 							echo '<div id="message" class="updated"><p>', esc_html( $this->strings['activated_successfully'] ), ' <strong>', esc_html( $this->plugins[ $slug ]['name'] ), '.</strong></p></div>';
 						}
 					} else {
@@ -982,7 +1106,8 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 				if ( ! $automatic ) {
 					// Make sure message doesn't display again if bulk activation is performed
 					// immediately after a single activation.
-					if ( ! isset( $_POST['action'] ) ) { // WPCS: CSRF OK.
+					// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Not using the superglobal.
+					if ( ! isset( $_POST['action'] ) ) {
 						echo '<div id="message" class="error"><p>',
 							sprintf(
 								esc_html( $this->strings['plugin_needs_higher_version'] ),
@@ -1016,7 +1141,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 */
 		public function notices() {
 			// Remove nag on the install page / Return early if the nag message has been dismissed or user < author.
-			if ( ( $this->is_tgmpa_page() || $this->is_core_update_page() ) || get_user_meta( get_current_user_id(), 'wpelemento_importer_tgmpa_dismissed_notice_' . $this->id, true ) || ! current_user_can( apply_filters( 'tgmpa_show_admin_notice_capability', 'publish_posts' ) ) ) {
+			if ( ( $this->is_wpelemento_importer_tgmpa_page() || $this->is_core_update_page() ) || get_user_meta( get_current_user_id(), 'wpelemento_importer_tgmpa_dismissed_notice_' . $this->id, true ) || ! current_user_can( apply_filters( 'wpelemento_importer_tgmpa_show_admin_notice_capability', 'publish_posts' ) ) ) {
 				return;
 			}
 
@@ -1114,12 +1239,12 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 						$count          = count( $plugin_group );
 						$linked_plugins = array_map( array( 'WPELEMENTO_IMPORTER_TGMPA_Utils', 'wpelemento_importer_wrap_in_em' ), $linked_plugins );
 						$last_plugin    = array_pop( $linked_plugins ); // Pop off last name to prep for readability.
-						$imploded       = empty( $linked_plugins ) ? $last_plugin : ( implode( ', ', $linked_plugins ) . ' ' . esc_html_x( 'and', 'plugin A *and* plugin B', 'wpelemento-importer' ) . ' ' . $last_plugin );
+						$imploded       = empty( $linked_plugins ) ? $last_plugin : ( implode( ', ', $linked_plugins ) . ' ' . esc_html_x( 'and', 'plugin A *and* plugin B', 'film-production' ) . ' ' . $last_plugin );
 
 						$rendered .= sprintf(
 							$line_template,
 							sprintf(
-								translate_nooped_plural( $this->strings[ $type ], $count, 'wpelemento-importer' ),
+								translate_nooped_plural( $this->strings[ $type ], $count, 'film-production' ),
 								$imploded,
 								$count
 							)
@@ -1132,7 +1257,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 				}
 
 				// Register the nag messages and prepare them to be processed.
-				add_settings_error( 'tgmpa', 'tgmpa', $rendered, $this->get_admin_notice_class() );
+				add_settings_error( 'film-production', 'film-production', $rendered, $this->get_admin_notice_class() );
 			}
 
 			// Admin options pages already output settings_errors, so this is to avoid duplication.
@@ -1167,14 +1292,14 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 				if ( $install_count > 0 ) {
 					$action_links['install'] = sprintf(
 						$link_template,
-						translate_nooped_plural( $this->strings['install_link'], $install_count, 'wpelemento-importer' ),
+						translate_nooped_plural( $this->strings['install_link'], $install_count, 'film-production' ),
 						esc_url( $this->get_wpelemento_importer_tgmpa_status_url( 'install' ) )
 					);
 				}
 				if ( $update_count > 0 ) {
 					$action_links['update'] = sprintf(
 						$link_template,
-						translate_nooped_plural( $this->strings['update_link'], $update_count, 'wpelemento-importer' ),
+						translate_nooped_plural( $this->strings['update_link'], $update_count, 'film-production' ),
 						esc_url( $this->get_wpelemento_importer_tgmpa_status_url( 'update' ) )
 					);
 				}
@@ -1183,7 +1308,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 			if ( current_user_can( 'activate_plugins' ) && $activate_count > 0 ) {
 				$action_links['activate'] = sprintf(
 					$link_template,
-					translate_nooped_plural( $this->strings['activate_link'], $activate_count, 'wpelemento-importer' ),
+					translate_nooped_plural( $this->strings['activate_link'], $activate_count, 'film-production' ),
 					esc_url( $this->get_wpelemento_importer_tgmpa_status_url( 'activate' ) )
 				);
 			}
@@ -1232,10 +1357,10 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		protected function display_settings_errors() {
 			global $wp_settings_errors;
 
-			settings_errors( 'tgmpa' );
+			settings_errors( 'film-production' );
 
 			foreach ( (array) $wp_settings_errors as $key => $details ) {
-				if ( 'tgmpa' === $details['setting'] ) {
+				if ( 'film-production' === $details['setting'] ) {
 					unset( $wp_settings_errors[ $key ] );
 					break;
 				}
@@ -1277,15 +1402,15 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 			}
 
 			$defaults = array(
-				'name'               => '',      // String
-				'slug'               => '',      // String
-				'source'             => 'repo',  // String
-				'required'           => false,   // Boolean
-				'version'            => '',      // String
-				'force_activation'   => false,   // Boolean
-				'force_deactivation' => false,   // Boolean
-				'external_url'       => '',      // String
-				'is_callable'        => '',      // String|Array.
+				'name'               => '',      // String.
+				'slug'               => '',      // String.
+				'source'             => 'repo',  // String.
+				'required'           => false,   // Boolean.
+				'version'            => '',      // String.
+				'force_activation'   => false,   // Boolean.
+				'force_deactivation' => false,   // Boolean.
+				'external_url'       => '',      // String.
+				'is_callable'        => '',      // String or array.
 			);
 
 			// Prepare the received data.
@@ -1373,9 +1498,9 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 *
 		 * @since 2.0.0
 		 *
-		 * @param array $wpelemento_importer_pro_config Array of config options to pass as class properties.
+		 * @param array $config Array of config options to pass as class properties.
 		 */
-		public function config( $wpelemento_importer_pro_config ) {
+		public function config( $config ) {
 			$keys = array(
 				'id',
 				'default_path',
@@ -1391,11 +1516,11 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 			);
 
 			foreach ( $keys as $key ) {
-				if ( isset( $wpelemento_importer_pro_config[ $key ] ) ) {
-					if ( is_array( $wpelemento_importer_pro_config[ $key ] ) ) {
-						$this->$key = array_merge( $this->$key, $wpelemento_importer_pro_config[ $key ] );
+				if ( isset( $config[ $key ] ) ) {
+					if ( is_array( $config[ $key ] ) ) {
+						$this->$key = array_merge( $this->$key, $config[ $key ] );
 					} else {
-						$this->$key = $wpelemento_importer_pro_config[ $key ];
+						$this->$key = $config[ $key ];
 					}
 				}
 			}
@@ -1411,7 +1536,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 */
 		public function actions( $install_actions ) {
 			// Remove action links on the TGMPA install page.
-			if ( $this->is_tgmpa_page() ) {
+			if ( $this->is_wpelemento_importer_tgmpa_page() ) {
 				return false;
 			}
 
@@ -1551,7 +1676,15 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 					require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 				}
 
-				$response = plugins_api( 'plugin_information', array( 'slug' => $slug, 'fields' => array( 'sections' => false ) ) );
+				$response = plugins_api(
+					'plugin_information',
+					array(
+						'slug'   => $slug,
+						'fields' => array(
+							'sections' => false,
+						),
+					)
+				);
 
 				$api[ $slug ] = false;
 
@@ -1612,7 +1745,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 *
 		 * @return boolean True when on the TGMPA page, false otherwise.
 		 */
-		protected function is_tgmpa_page() {
+		protected function is_wpelemento_importer_tgmpa_page() {
 			return isset( $_GET['page'] ) && $this->menu === $_GET['page'];
 		}
 
@@ -1634,10 +1767,10 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 			if ( 'update-core' === $screen->base ) {
 				// Core update screen.
 				return true;
-			} elseif ( 'plugins' === $screen->base && ! empty( $_POST['action'] ) ) { // WPCS: CSRF ok.
+			} elseif ( 'plugins' === $screen->base && ! empty( $_POST['action'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				// Plugins bulk update screen.
 				return true;
-			} elseif ( 'update' === $screen->base && ! empty( $_POST['action'] ) ) { // WPCS: CSRF ok.
+			} elseif ( 'update' === $screen->base && ! empty( $_POST['action'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				// Individual updates (ajax call).
 				return true;
 			}
@@ -1655,7 +1788,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 *
 		 * @return string Properly encoded URL (not escaped).
 		 */
-		public function get_tgmpa_url() {
+		public function get_wpelemento_importer_tgmpa_url() {
 			static $url;
 
 			if ( ! isset( $url ) ) {
@@ -1690,7 +1823,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 				array(
 					'plugin_status' => urlencode( $status ),
 				),
-				$this->get_tgmpa_url()
+				$this->get_wpelemento_importer_tgmpa_url()
 			);
 		}
 
@@ -1701,7 +1834,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 		 *
 		 * @return bool True if complete, i.e. no outstanding actions. False otherwise.
 		 */
-		public function is_tgmpa_complete() {
+		public function is_wpelemento_importer_tgmpa_complete() {
 			$complete = true;
 			foreach ( $this->plugins as $slug => $plugin ) {
 				if ( ! $this->is_plugin_active( $slug ) || false !== $this->does_plugin_have_update( $slug ) ) {
@@ -1975,11 +2108,29 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Plugin_Activation' ) ) {
 				esc_html(
 					sprintf(
 						/* translators: %s: version number */
-						__( 'TGMPA v%s', 'wpelemento-importer' ),
-						self::TGMPA_VERSION
+						__( 'TGMPA v%s', 'film-production' ),
+						self::WPELEMENTO_IMPORTER_TGMPA_VERSION
 					)
 				),
 				'</small></strong></p>';
+		}
+
+		/**
+		 * Adds CSS to admin head.
+		 *
+		 * @since 2.6.2
+		 */
+		public function admin_css() {
+			if ( ! $this->is_wpelemento_importer_tgmpa_page() ) {
+				return;
+			}
+
+			echo '
+			<style>
+			#tgmpa-plugins .tgmpa-type-required > th {
+				border-left: 3px solid #dc3232;
+			}
+			</style>';
 		}
 
 		/**
@@ -2024,32 +2175,32 @@ if ( ! function_exists( 'wpelemento_importer_tgmpa' ) ) {
 	 * @api
 	 *
 	 * @param array $plugins An array of plugin arrays.
-	 * @param array $wpelemento_importer_pro_config  Optional. An array of configuration values.
+	 * @param array $config  Optional. An array of configuration values.
 	 */
-	function wpelemento_importer_tgmpa( $plugins, $wpelemento_importer_pro_config = array() ) {
+	function wpelemento_importer_tgmpa( $plugins, $config = array() ) {
 		$instance = call_user_func( array( get_class( $GLOBALS['wpelemento_importer_tgmpa'] ), 'get_instance' ) );
 
 		foreach ( $plugins as $plugin ) {
 			call_user_func( array( $instance, 'register' ), $plugin );
 		}
 
-		if ( ! empty( $wpelemento_importer_pro_config ) && is_array( $wpelemento_importer_pro_config ) ) {
+		if ( ! empty( $config ) && is_array( $config ) ) {
 			// Send out notices for deprecated arguments passed.
-			if ( isset( $wpelemento_importer_pro_config['notices'] ) ) {
+			if ( isset( $config['notices'] ) ) {
 				_deprecated_argument( __FUNCTION__, '2.2.0', 'The `notices` config parameter was renamed to `has_notices` in TGMPA 2.2.0. Please adjust your configuration.' );
-				if ( ! isset( $wpelemento_importer_pro_config['has_notices'] ) ) {
-					$wpelemento_importer_pro_config['has_notices'] = $wpelemento_importer_pro_config['notices'];
+				if ( ! isset( $config['has_notices'] ) ) {
+					$config['has_notices'] = $config['notices'];
 				}
 			}
 
-			if ( isset( $wpelemento_importer_pro_config['parent_menu_slug'] ) ) {
+			if ( isset( $config['parent_menu_slug'] ) ) {
 				_deprecated_argument( __FUNCTION__, '2.4.0', 'The `parent_menu_slug` config parameter was removed in TGMPA 2.4.0. In TGMPA 2.5.0 an alternative was (re-)introduced. Please adjust your configuration. For more information visit the website: http://tgmpluginactivation.com/configuration/#h-configuration-options.' );
 			}
-			if ( isset( $wpelemento_importer_pro_config['parent_url_slug'] ) ) {
+			if ( isset( $config['parent_url_slug'] ) ) {
 				_deprecated_argument( __FUNCTION__, '2.4.0', 'The `parent_url_slug` config parameter was removed in TGMPA 2.4.0. In TGMPA 2.5.0 an alternative was (re-)introduced. Please adjust your configuration. For more information visit the website: http://tgmpluginactivation.com/configuration/#h-configuration-options.' );
 			}
 
-			call_user_func( array( $instance, 'config' ), $wpelemento_importer_pro_config );
+			call_user_func( array( $instance, 'config' ), $config );
 		}
 	}
 }
@@ -2136,7 +2287,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 				$this->view_context = sanitize_key( $_REQUEST['plugin_status'] );
 			}
 
-			add_filter( 'tgmpa_table_data_items', array( $this, 'sort_table_items' ) );
+			add_filter( 'wpelemento_importer_tgmpa_table_data_items', array( $this, 'sort_table_items' ) );
 		}
 
 		/**
@@ -2195,7 +2346,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 				if ( ! empty( $upgrade_notice ) ) {
 					$table_data[ $i ]['upgrade_notice'] = $upgrade_notice;
 
-					add_action( "tgmpa_after_plugin_row_{$slug}", array( $this, 'wp_plugin_update_row' ), 10, 2 );
+					add_action( "wpelemento_importer_tgmpa_after_plugin_row_{$slug}", array( $this, 'wp_plugin_update_row' ), 10, 2 );
 				}
 
 				$table_data[ $i ] = apply_filters( 'tgmpa_table_data_item', $table_data[ $i ], $plugin );
@@ -2266,10 +2417,10 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 		 */
 		protected function get_plugin_advise_type_text( $required ) {
 			if ( true === $required ) {
-				return __( 'Required', 'wpelemento-importer' );
+				return __( 'Required', 'film-production' );
 			}
 
-			return __( 'Recommended', 'wpelemento-importer' );
+			return __( 'Recommended', 'film-production' );
 		}
 
 		/**
@@ -2285,13 +2436,13 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 
 			switch ( $type ) {
 				case 'repo':
-					$string = __( 'WordPress Repository', 'wpelemento-importer' );
+					$string = __( 'WordPress Repository', 'film-production' );
 					break;
 				case 'external':
-					$string = __( 'External Source', 'wpelemento-importer' );
+					$string = __( 'External Source', 'film-production' );
 					break;
 				case 'bundled':
-					$string = __( 'Pre-Packaged', 'wpelemento-importer' );
+					$string = __( 'Pre-Packaged', 'film-production' );
 					break;
 			}
 
@@ -2308,25 +2459,25 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 		 */
 		protected function get_plugin_status_text( $slug ) {
 			if ( ! $this->wpelemento_importer->is_plugin_installed( $slug ) ) {
-				return __( 'Not Installed', 'wpelemento-importer' );
+				return __( 'Not Installed', 'film-production' );
 			}
 
 			if ( ! $this->wpelemento_importer->is_plugin_active( $slug ) ) {
-				$install_status = __( 'Installed But Not Activated', 'wpelemento-importer' );
+				$install_status = __( 'Installed But Not Activated', 'film-production' );
 			} else {
-				$install_status = __( 'Active', 'wpelemento-importer' );
+				$install_status = __( 'Active', 'film-production' );
 			}
 
 			$update_status = '';
 
 			if ( $this->wpelemento_importer->does_plugin_require_update( $slug ) && false === $this->wpelemento_importer->does_plugin_have_update( $slug ) ) {
-				$update_status = __( 'Required Update not Available', 'wpelemento-importer' );
+				$update_status = __( 'Required Update not Available', 'film-production' );
 
 			} elseif ( $this->wpelemento_importer->does_plugin_require_update( $slug ) ) {
-				$update_status = __( 'Requires Update', 'wpelemento-importer' );
+				$update_status = __( 'Requires Update', 'film-production' );
 
 			} elseif ( false !== $this->wpelemento_importer->does_plugin_have_update( $slug ) ) {
-				$update_status = __( 'Update recommended', 'wpelemento-importer' );
+				$update_status = __( 'Update recommended', 'film-production' );
 			}
 
 			if ( '' === $update_status ) {
@@ -2335,7 +2486,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 
 			return sprintf(
 				/* translators: 1: install status, 2: update status */
-				_x( '%1$s, %2$s', 'Install/Update Status', 'wpelemento-importer' ),
+				_x( '%1$s, %2$s', 'Install/Update Status', 'film-production' ),
 				$install_status,
 				$update_status
 			);
@@ -2381,19 +2532,19 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 				switch ( $type ) {
 					case 'all':
 						/* translators: 1: number of plugins. */
-						$text = _nx( 'All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $count, 'plugins', 'wpelemento-importer' );
+						$text = _nx( 'All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $count, 'plugins', 'film-production' );
 						break;
 					case 'install':
 						/* translators: 1: number of plugins. */
-						$text = _n( 'To Install <span class="count">(%s)</span>', 'To Install <span class="count">(%s)</span>', $count, 'wpelemento-importer' );
+						$text = _n( 'To Install <span class="count">(%s)</span>', 'To Install <span class="count">(%s)</span>', $count, 'film-production' );
 						break;
 					case 'update':
 						/* translators: 1: number of plugins. */
-						$text = _n( 'Update Available <span class="count">(%s)</span>', 'Update Available <span class="count">(%s)</span>', $count, 'wpelemento-importer' );
+						$text = _n( 'Update Available <span class="count">(%s)</span>', 'Update Available <span class="count">(%s)</span>', $count, 'film-production' );
 						break;
 					case 'activate':
 						/* translators: 1: number of plugins. */
-						$text = _n( 'To Activate <span class="count">(%s)</span>', 'To Activate <span class="count">(%s)</span>', $count, 'wpelemento-importer' );
+						$text = _n( 'To Activate <span class="count">(%s)</span>', 'To Activate <span class="count">(%s)</span>', $count, 'film-production' );
 						break;
 					default:
 						$text = '';
@@ -2475,7 +2626,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 			$output = array();
 
 			if ( $this->wpelemento_importer->is_plugin_installed( $item['slug'] ) ) {
-				$installed = ! empty( $item['installed_version'] ) ? $item['installed_version'] : _x( 'unknown', 'as in: "version nr unknown"', 'wpelemento-importer' );
+				$installed = ! empty( $item['installed_version'] ) ? $item['installed_version'] : _x( 'unknown', 'as in: "version nr unknown"', 'film-production' );
 
 				$color = '';
 				if ( ! empty( $item['minimum_version'] ) && $this->wpelemento_importer->does_plugin_require_update( $item['slug'] ) ) {
@@ -2483,7 +2634,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 				}
 
 				$output[] = sprintf(
-					'<p><span style="min-width: 32px; text-align: right; float: right;%1$s">%2$s</span>' . __( 'Installed version:', 'wpelemento-importer' ) . '</p>',
+					'<p><span style="min-width: 32px; text-align: right; float: right;%1$s">%2$s</span>' . __( 'Installed version:', 'film-production' ) . '</p>',
 					$color,
 					$installed
 				);
@@ -2491,7 +2642,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 
 			if ( ! empty( $item['minimum_version'] ) ) {
 				$output[] = sprintf(
-					'<p><span style="min-width: 32px; text-align: right; float: right;">%1$s</span>' . __( 'Minimum required version:', 'wpelemento-importer' ) . '</p>',
+					'<p><span style="min-width: 32px; text-align: right; float: right;">%1$s</span>' . __( 'Minimum required version:', 'film-production' ) . '</p>',
 					$item['minimum_version']
 				);
 			}
@@ -2503,7 +2654,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 				}
 
 				$output[] = sprintf(
-					'<p><span style="min-width: 32px; text-align: right; float: right;%1$s">%2$s</span>' . __( 'Available version:', 'wpelemento-importer' ) . '</p>',
+					'<p><span style="min-width: 32px; text-align: right; float: right;%1$s">%2$s</span>' . __( 'Available version:', 'film-production' ) . '</p>',
 					$color,
 					$item['available_version']
 				);
@@ -2526,7 +2677,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 		 * @since 2.2.0
 		 */
 		public function no_items() {
-			echo esc_html__( 'No plugins to install, update or activate.', 'wpelemento-importer' ) . ' <a href="' . esc_url( self_admin_url() ) . '"> ' . esc_html__( 'Return to the Dashboard', 'wpelemento-importer' ) . '</a>';
+			echo esc_html__( 'No plugins to install, update or activate.', 'film-production' ) . ' <a href="' . esc_url( self_admin_url() ) . '"> ' . esc_html( $this->wpelemento_importer->strings['dashboard'] ) . '</a>';
 			echo '<style type="text/css">#adminmenu .wp-submenu li.current { display: none !important; }</style>';
 		}
 
@@ -2540,17 +2691,17 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 		public function get_columns() {
 			$columns = array(
 				'cb'     => '<input type="checkbox" />',
-				'plugin' => __( 'Plugin', 'wpelemento-importer' ),
-				'source' => __( 'Source', 'wpelemento-importer' ),
-				'type'   => __( 'Type', 'wpelemento-importer' ),
+				'plugin' => __( 'Plugin', 'film-production' ),
+				'source' => __( 'Source', 'film-production' ),
+				'type'   => __( 'Type', 'film-production' ),
 			);
 
 			if ( 'all' === $this->view_context || 'update' === $this->view_context ) {
-				$columns['version'] = __( 'Version', 'wpelemento-importer' );
-				$columns['status']  = __( 'Status', 'wpelemento-importer' );
+				$columns['version'] = __( 'Version', 'film-production' );
+				$columns['status']  = __( 'Status', 'film-production' );
 			}
 
-			return apply_filters( 'tgmpa_table_columns', $columns );
+				return apply_filters( 'wpelemento_importer_tgmpa_table_columns', $columns );
 		}
 
 		/**
@@ -2596,18 +2747,18 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 			// Display the 'Install' action link if the plugin is not yet available.
 			if ( ! $this->wpelemento_importer->is_plugin_installed( $item['slug'] ) ) {
 				/* translators: %2$s: plugin name in screen reader markup */
-				$actions['install'] = __( 'Install %2$s', 'wpelemento-importer' );
+				$actions['install'] = __( 'Install %2$s', 'film-production' );
 			} else {
 				// Display the 'Update' action link if an update is available and WP complies with plugin minimum.
 				if ( false !== $this->wpelemento_importer->does_plugin_have_update( $item['slug'] ) && $this->wpelemento_importer->can_plugin_update( $item['slug'] ) ) {
 					/* translators: %2$s: plugin name in screen reader markup */
-					$actions['update'] = __( 'Update %2$s', 'wpelemento-importer' );
+					$actions['update'] = __( 'Update %2$s', 'film-production' );
 				}
 
 				// Display the 'Activate' action link, but only if the plugin meets the minimum version.
 				if ( $this->wpelemento_importer->can_plugin_activate( $item['slug'] ) ) {
 					/* translators: %2$s: plugin name in screen reader markup */
-					$actions['activate'] = __( 'Activate %2$s', 'wpelemento-importer' );
+					$actions['activate'] = __( 'Activate %2$s', 'film-production' );
 				}
 			}
 
@@ -2617,12 +2768,12 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 					add_query_arg(
 						array(
 							'plugin'           => urlencode( $item['slug'] ),
-							'tgmpa-' . $action => $action . '-plugin',
+							'wpelemento-importer-tgmpa-' . $action => $action . '-plugin',
 						),
-						$this->wpelemento_importer->get_tgmpa_url()
+						$this->wpelemento_importer->get_wpelemento_importer_tgmpa_url()
 					),
-					'tgmpa-' . $action,
-					'tgmpa-nonce'
+					'wpelemento-importer-tgmpa-' . $action,
+					'wpelemento-importer-tgmpa-nonce'
 				);
 
 				$action_links[ $action ] = sprintf(
@@ -2633,7 +2784,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 			}
 
 			$prefix = ( defined( 'WP_NETWORK_ADMIN' ) && WP_NETWORK_ADMIN ) ? 'network_admin_' : '';
-			return apply_filters( "tgmpa_{$prefix}plugin_action_links", array_filter( $action_links ), $item['slug'], $item, $this->view_context );
+			return apply_filters( "wpelemento_importer_tgmpa_{$prefix}plugin_action_links", array_filter( $action_links ), $item['slug'], $item, $this->view_context );
 		}
 
 		/**
@@ -2644,7 +2795,9 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 		 * @param object $item The current item.
 		 */
 		public function single_row( $item ) {
-			parent::single_row( $item );
+			echo '<tr class="' . esc_attr( 'tgmpa-type-' . strtolower( $item['type'] ) ) . '">';
+			$this->single_row_columns( $item );
+			echo '</tr>';
 
 			/**
 			 * Fires after each specific row in the TGMPA Plugins list table.
@@ -2654,7 +2807,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 			 *
 			 * @since 2.5.0
 			 */
-			do_action( "tgmpa_after_plugin_row_{$item['slug']}", $item['slug'], $item, $this->view_context );
+			do_action( "wpelemento_importer_tgmpa_after_plugin_row_{$item['slug']}", $item['slug'], $item, $this->view_context );
 		}
 
 		/**
@@ -2677,7 +2830,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 				<tr class="plugin-update-tr">
 					<td colspan="', absint( $this->get_column_count() ), '" class="plugin-update colspanchange">
 						<div class="update-message">',
-							esc_html__( 'Upgrade message from the plugin author:', 'wpelemento-importer' ),
+							esc_html__( 'Upgrade message from the plugin author:', 'film-production' ),
 							' <strong>', wp_kses_data( $item['upgrade_notice'] ), '</strong>
 						</div>
 					</td>
@@ -2689,7 +2842,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 		 *
 		 * @since 2.5.0
 		 *
-		 * @param string $which 'top' or 'bottom' table navigation.
+		 * @param string $which Either 'top' or 'bottom' table navigation.
 		 */
 		public function extra_tablenav( $which ) {
 			if ( 'bottom' === $which ) {
@@ -2710,16 +2863,16 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 
 			if ( 'update' !== $this->view_context && 'activate' !== $this->view_context ) {
 				if ( current_user_can( 'install_plugins' ) ) {
-					$actions['wpelemento-importer-tgmpa-bulk-install'] = __( 'Install', 'wpelemento-importer' );
+					$actions['wpelemento-importer-tgmpa-bulk-install'] = __( 'Install', 'film-production' );
 				}
 			}
 
 			if ( 'install' !== $this->view_context ) {
 				if ( current_user_can( 'update_plugins' ) ) {
-					$actions['wpelemento-importer-tgmpa-bulk-update'] = __( 'Update', 'wpelemento-importer' );
+					$actions['wpelemento-importer-tgmpa-bulk-update'] = __( 'Update', 'film-production' );
 				}
 				if ( current_user_can( 'activate_plugins' ) ) {
-					$actions['tgmpa-bulk-activate'] = __( 'Activate', 'wpelemento-importer' );
+					$actions['wpelemento-importer-tgmpa-bulk-activate'] = __( 'Activate', 'film-production' );
 				}
 			}
 
@@ -2750,9 +2903,9 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 				// Did user actually select any plugins to install/update ?
 				if ( empty( $_POST['plugin'] ) ) {
 					if ( 'install' === $install_type ) {
-						$message = __( 'No plugins were selected to be installed. No action taken.', 'wpelemento-importer' );
+						$message = __( 'No plugins were selected to be installed. No action taken.', 'film-production' );
 					} else {
-						$message = __( 'No plugins were selected to be updated. No action taken.', 'wpelemento-importer' );
+						$message = __( 'No plugins were selected to be updated. No action taken.', 'film-production' );
 					}
 
 					echo '<div id="message" class="error"><p>', esc_html( $message ), '</p></div>';
@@ -2793,9 +2946,9 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 				// No need to proceed further if we have no plugins to handle.
 				if ( empty( $plugins_to_install ) ) {
 					if ( 'install' === $install_type ) {
-						$message = __( 'No plugins are available to be installed at this time.', 'wpelemento-importer' );
+						$message = __( 'No plugins are available to be installed at this time.', 'film-production' );
 					} else {
-						$message = __( 'No plugins are available to be updated at this time.', 'wpelemento-importer' );
+						$message = __( 'No plugins are available to be updated at this time.', 'film-production' );
 					}
 
 					echo '<div id="message" class="error"><p>', esc_html( $message ), '</p></div>';
@@ -2805,7 +2958,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 
 				// Pass all necessary information if WP_Filesystem is needed.
 				$url = wp_nonce_url(
-					$this->wpelemento_importer->get_tgmpa_url(),
+					$this->wpelemento_importer->get_wpelemento_importer_tgmpa_url(),
 					'bulk-' . $this->_args['plural']
 				);
 
@@ -2815,7 +2968,8 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 				$method = ''; // Leave blank so WP_Filesystem can populate it as necessary.
 				$fields = array_keys( $_POST ); // Extra fields to pass to WP_Filesystem.
 
-				if ( false === ( $creds = request_filesystem_credentials( esc_url_raw( $url ), $method, false, false, $fields ) ) ) {
+				$creds = request_filesystem_credentials( esc_url_raw( $url ), $method, false, false, $fields );
+				if ( false === $creds ) {
 					return true; // Stop the normal page form from displaying, credential request form will be shown.
 				}
 
@@ -2863,7 +3017,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 				$installer = new WPELEMENTO_IMPORTER_TGMPA_Bulk_Installer(
 					new WPELEMENTO_IMPORTER_TGMPA_Bulk_Installer_Skin(
 						array(
-							'url'          => esc_url_raw( $this->wpelemento_importer->get_tgmpa_url() ),
+							'url'          => esc_url_raw( $this->wpelemento_importer->get_wpelemento_importer_tgmpa_url() ),
 							'nonce'        => 'bulk-' . $this->_args['plural'],
 							'names'        => $names,
 							'install_type' => $install_type,
@@ -2896,12 +3050,12 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 			}
 
 			// Bulk activation process.
-			if ( 'tgmpa-bulk-activate' === $this->current_action() ) {
+			if ( 'wpelemento-importer-tgmpa-bulk-activate' === $this->current_action() ) {
 				check_admin_referer( 'bulk-' . $this->_args['plural'] );
 
 				// Did user actually select any plugins to activate ?
 				if ( empty( $_POST['plugin'] ) ) {
-					echo '<div id="message" class="error"><p>', esc_html__( 'No plugins were selected to be activated. No action taken.', 'wpelemento-importer' ), '</p></div>';
+					echo '<div id="message" class="error"><p>', esc_html__( 'No plugins were selected to be activated. No action taken.', 'film-production' ), '</p></div>';
 
 					return false;
 				}
@@ -2927,7 +3081,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 
 				// Return early if there are no plugins to activate.
 				if ( empty( $plugins_to_activate ) ) {
-					echo '<div id="message" class="error"><p>', esc_html__( 'No plugins are available to be activated at this time.', 'wpelemento-importer' ), '</p></div>';
+					echo '<div id="message" class="error"><p>', esc_html__( 'No plugins are available to be activated at this time.', 'film-production' ), '</p></div>';
 
 					return false;
 				}
@@ -2941,11 +3095,12 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 					$count        = count( $plugin_names ); // Count so we can use _n function.
 					$plugin_names = array_map( array( 'WPELEMENTO_IMPORTER_TGMPA_Utils', 'wpelemento_importer_wrap_in_strong' ), $plugin_names );
 					$last_plugin  = array_pop( $plugin_names ); // Pop off last name to prep for readability.
-					$imploded     = empty( $plugin_names ) ? $last_plugin : ( implode( ', ', $plugin_names ) . ' ' . esc_html_x( 'and', 'plugin A *and* plugin B', 'wpelemento-importer' ) . ' ' . $last_plugin );
+					$imploded     = empty( $plugin_names ) ? $last_plugin : ( implode( ', ', $plugin_names ) . ' ' . esc_html_x( 'and', 'plugin A *and* plugin B', 'film-production' ) . ' ' . $last_plugin );
 
-					printf( // WPCS: xss ok.
+					printf(
 						'<div id="message" class="updated"><p>%1$s %2$s.</p></div>',
-						esc_html( _n( 'The following plugin was activated successfully:', 'The following plugins were activated successfully:', $count, 'wpelemento-importer' ) ),
+						esc_html( _n( 'The following plugin was activated successfully:', 'The following plugins were activated successfully:', $count, 'film-production' ) ),
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped via wrap_in_strong() method above.
 						$imploded
 					);
 
@@ -2980,12 +3135,12 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_List_Table' ) ) {
 			$this->_column_headers = array( $columns, $hidden, $sortable, $primary ); // Get all necessary column headers.
 
 			// Process our bulk activations here.
-			if ( 'tgmpa-bulk-activate' === $this->current_action() ) {
+			if ( 'wpelemento-importer-tgmpa-bulk-activate' === $this->current_action() ) {
 				$this->process_bulk_actions();
 			}
 
 			// Store all of our plugin data into $items array so WP_List_Table can use it.
-			$this->items = apply_filters( 'tgmpa_table_data_items', $this->_gather_plugin_data() );
+			$this->items = apply_filters( 'wpelemento_importer_tgmpa_table_data_items', $this->_gather_plugin_data() );
 		}
 
 		/* *********** DEPRECATED METHODS *********** */
@@ -3023,17 +3178,17 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Bulk_Installer' ) ) {
 	class WPELEMENTO_IMPORTER_TGM_Bulk_Installer {
 	}
 }
-if ( ! class_exists( 'TGM_Bulk_Installer_Skin' ) ) {
+if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGM_Bulk_Installer_Skin' ) ) {
 
 	/**
 	 * Hack: Prevent TGMPA v2.4.1- bulk installer skin class from being loaded if 2.4.1- is loaded after 2.5+.
 	 *
 	 * @since 2.5.2
 	 *
-	 * {@internal The WPELEMENTO_IMPORTER_TGMPA_Bulk_Installer_Skin class was originally called TGM_Bulk_Installer_Skin.
+	 * {@internal The WPELEMENTO_IMPORTER_TGMPA_Bulk_Installer_Skin class was originally called WPELEMENTO_IMPORTER_TGM_Bulk_Installer_Skin.
 	 *            For more information, see that class.}}
 	 */
-	class TGM_Bulk_Installer_Skin {
+	class WPELEMENTO_IMPORTER_TGM_Bulk_Installer_Skin {
 	}
 }
 
@@ -3047,12 +3202,12 @@ if ( ! class_exists( 'TGM_Bulk_Installer_Skin' ) ) {
  *
  * @since 2.2.0
  */
-add_action( 'admin_init', 'tgmpa_load_bulk_installer' );
-if ( ! function_exists( 'tgmpa_load_bulk_installer' ) ) {
+add_action( 'admin_init', 'wpelemento_importer_tgmpa_load_bulk_installer' );
+if ( ! function_exists( 'wpelemento_importer_tgmpa_load_bulk_installer' ) ) {
 	/**
 	 * Load bulk installer
 	 */
-	function tgmpa_load_bulk_installer() {
+	function wpelemento_importer_tgmpa_load_bulk_installer() {
 		// Silently fail if 2.5+ is loaded *after* an older version.
 		if ( ! isset( $GLOBALS['wpelemento_importer_tgmpa'] ) ) {
 			return;
@@ -3110,7 +3265,7 @@ if ( ! function_exists( 'tgmpa_load_bulk_installer' ) ) {
 					 *
 					 * @var object
 					 */
-					protected $wpelemento_importer;
+					protected $tgmpa;
 
 					/**
 					 * Whether or not the destination directory needs to be cleared ( = on update).
@@ -3151,8 +3306,8 @@ if ( ! function_exists( 'tgmpa_load_bulk_installer' ) ) {
 					 * @since 2.2.0
 					 */
 					public function activate_strings() {
-						$this->strings['activation_failed']  = __( 'Plugin activation failed.', 'wpelemento-importer' );
-						$this->strings['activation_success'] = __( 'Plugin activated successfully.', 'wpelemento-importer' );
+						$this->strings['activation_failed']  = __( 'Plugin activation failed.', 'film-production' );
+						$this->strings['activation_success'] = __( 'Plugin activated successfully.', 'film-production' );
 					}
 
 					/**
@@ -3290,7 +3445,7 @@ if ( ! function_exists( 'tgmpa_load_bulk_installer' ) ) {
 							if ( false === $result ) {
 								break;
 							}
-						} //end foreach $plugins
+						}
 
 						$this->maintenance_mode( false );
 
@@ -3310,12 +3465,17 @@ if ( ! function_exists( 'tgmpa_load_bulk_installer' ) ) {
 						 *     @type array  $packages Array of plugin, theme, or core packages to update.
 						 * }
 						 */
-						do_action( 'upgrader_process_complete', $this, array(
-							'action'  => 'install', // [TGMPA + ] adjusted.
-							'type'    => 'plugin',
-							'bulk'    => true,
-							'plugins' => $plugins,
-						) );
+						do_action(
+							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Using WP core hook.
+							'upgrader_process_complete',
+							$this,
+							array(
+								'action'  => 'install', // [TGMPA + ] adjusted.
+								'type'    => 'plugin',
+								'bulk'    => true,
+								'plugins' => $plugins,
+							)
+						);
 
 						$this->skin->bulk_footer();
 
@@ -3395,27 +3555,27 @@ if ( ! function_exists( 'tgmpa_load_bulk_installer' ) ) {
 				}
 			}
 
-			if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_Bulk_Installer_Skin' ) ) {
+				if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_Bulk_Installer_Skin' ) ) {
 
-				/**
-				 * Installer skin to set strings for the bulk plugin installations..
-				 *
-				 * Extends Bulk_Upgrader_Skin and customizes to suit the installation of multiple
-				 * plugins.
-				 *
-				 * @since 2.2.0
-				 *
-				 * {@internal Since 2.5.2 the class has been renamed from TGM_Bulk_Installer_Skin to
-				 *            WPELEMENTO_IMPORTER_TGMPA_Bulk_Installer_Skin.
-				 *            This was done to prevent backward compatibility issues with v2.3.6.}}
-				 *
-				 * @see https://core.trac.wordpress.org/browser/trunk/src/wp-admin/includes/class-wp-upgrader-skins.php
-				 *
-				 * @package TGM-Plugin-Activation
-				 * @author  Thomas Griffin
-				 * @author  Gary Jones
-				 */
-				class WPELEMENTO_IMPORTER_TGMPA_Bulk_Installer_Skin extends Bulk_Upgrader_Skin {
+					/**
+					 * Installer skin to set strings for the bulk plugin installations..
+					 *
+					 * Extends Bulk_Upgrader_Skin and customizes to suit the installation of multiple
+					 * plugins.
+					 *
+					 * @since 2.2.0
+					 *
+					 * {@internal Since 2.5.2 the class has been renamed from WPELEMENTO_IMPORTER_TGM_Bulk_Installer_Skin to
+					 *            WPELEMENTO_IMPORTER_TGMPA_Bulk_Installer_Skin.
+					 *            This was done to prevent backward compatibility issues with v2.3.6.}}
+					 *
+					 * @see https://core.trac.wordpress.org/browser/trunk/src/wp-admin/includes/class-wp-upgrader-skins.php
+					 *
+					 * @package TGM-Plugin-Activation
+					 * @author  Thomas Griffin
+					 * @author  Gary Jones
+					 */
+					class WPELEMENTO_IMPORTER_TGMPA_Bulk_Installer_Skin extends Bulk_Upgrader_Skin {
 					/**
 					 * Holds plugin info for each individual plugin installation.
 					 *
@@ -3450,7 +3610,7 @@ if ( ! function_exists( 'tgmpa_load_bulk_installer' ) ) {
 					 *
 					 * @var object
 					 */
-					protected $wpelemento_importer;
+					protected $tgmpa;
 
 					/**
 					 * Constructor. Parses default args with new ones and extracts them for use.
@@ -3461,9 +3621,7 @@ if ( ! function_exists( 'tgmpa_load_bulk_installer' ) ) {
 					 */
 					public function __construct( $args = array() ) {
 						// Get TGMPA class instance.
-						$this->wpelemento_importer = call_user_func( array( get_class( $GLOBALS['wpelemento_importer_tgmpa'] ), 'get_instance' ) );
-
-						// Parse default and new args.
+							$this->wpelemento_importer = call_user_func( array( get_class( $GLOBALS['wpelemento_importer_tgmpa'] ), 'get_instance' ) );
 						$defaults = array(
 							'url'          => '',
 							'nonce'        => '',
@@ -3491,29 +3649,34 @@ if ( ! function_exists( 'tgmpa_load_bulk_installer' ) ) {
 						if ( 'update' === $this->options['install_type'] ) {
 							parent::add_strings();
 							/* translators: 1: plugin name, 2: action number 3: total number of actions. */
-							$this->upgrader->strings['skin_before_update_header'] = __( 'Updating Plugin %1$s (%2$d/%3$d)', 'wpelemento-importer' );
+							$this->upgrader->strings['skin_before_update_header'] = __( 'Updating Plugin %1$s (%2$d/%3$d)', 'film-production' );
 						} else {
 							/* translators: 1: plugin name, 2: error message. */
-							$this->upgrader->strings['skin_update_failed_error'] = __( 'An error occurred while installing %1$s: <strong>%2$s</strong>.', 'wpelemento-importer' );
+							$this->upgrader->strings['skin_update_failed_error'] = __( 'An error occurred while installing %1$s: <strong>%2$s</strong>.', 'film-production' );
 							/* translators: 1: plugin name. */
-							$this->upgrader->strings['skin_update_failed'] = __( 'The installation of %1$s failed.', 'wpelemento-importer' );
+							$this->upgrader->strings['skin_update_failed'] = __( 'The installation of %1$s failed.', 'film-production' );
 
-							if ( $this->wpelemento_importer->is_automatic ) {
+							if ( $this->tgmpa->is_automatic ) {
 								// Automatic activation strings.
-								$this->upgrader->strings['skin_upgrade_start'] = __( 'The installation and activation process is starting. This process may take a while on some hosts, so please be patient.', 'wpelemento-importer' );
+								$this->upgrader->strings['skin_upgrade_start'] = __( 'The installation and activation process is starting. This process may take a while on some hosts, so please be patient.', 'film-production' );
 								/* translators: 1: plugin name. */
-								$this->upgrader->strings['skin_update_successful'] = __( '%1$s installed and activated successfully.', 'wpelemento-importer' ) . ' <a href="#" class="hide-if-no-js" onclick="%2$s"><span>' . esc_html__( 'Show Details', 'wpelemento-importer' ) . '</span><span class="hidden">' . esc_html__( 'Hide Details', 'wpelemento-importer' ) . '</span>.</a>';
-								$this->upgrader->strings['skin_upgrade_end']       = __( 'All installations and activations have been completed.', 'wpelemento-importer' );
+								$this->upgrader->strings['skin_update_successful'] = __( '%1$s installed and activated successfully.', 'film-production' );
+								$this->upgrader->strings['skin_upgrade_end']       = __( 'All installations and activations have been completed.', 'film-production' );
 								/* translators: 1: plugin name, 2: action number 3: total number of actions. */
-								$this->upgrader->strings['skin_before_update_header'] = __( 'Installing and Activating Plugin %1$s (%2$d/%3$d)', 'wpelemento-importer' );
+								$this->upgrader->strings['skin_before_update_header'] = __( 'Installing and Activating Plugin %1$s (%2$d/%3$d)', 'film-production' );
 							} else {
 								// Default installation strings.
-								$this->upgrader->strings['skin_upgrade_start'] = __( 'The installation process is starting. This process may take a while on some hosts, so please be patient.', 'wpelemento-importer' );
+								$this->upgrader->strings['skin_upgrade_start'] = __( 'The installation process is starting. This process may take a while on some hosts, so please be patient.', 'film-production' );
 								/* translators: 1: plugin name. */
-								$this->upgrader->strings['skin_update_successful'] = esc_html__( '%1$s installed successfully.', 'wpelemento-importer' ) . ' <a href="#" class="hide-if-no-js" onclick="%2$s"><span>' . esc_html__( 'Show Details', 'wpelemento-importer' ) . '</span><span class="hidden">' . esc_html__( 'Hide Details', 'wpelemento-importer' ) . '</span>.</a>';
-								$this->upgrader->strings['skin_upgrade_end']       = __( 'All installations have been completed.', 'wpelemento-importer' );
+								$this->upgrader->strings['skin_update_successful'] = __( '%1$s installed successfully.', 'film-production' );
+								$this->upgrader->strings['skin_upgrade_end']       = __( 'All installations have been completed.', 'film-production' );
 								/* translators: 1: plugin name, 2: action number 3: total number of actions. */
-								$this->upgrader->strings['skin_before_update_header'] = __( 'Installing Plugin %1$s (%2$d/%3$d)', 'wpelemento-importer' );
+								$this->upgrader->strings['skin_before_update_header'] = __( 'Installing Plugin %1$s (%2$d/%3$d)', 'film-production' );
+							}
+
+							// Add "read more" link only for WP < 4.8.
+							if ( version_compare( $this->wpelemento_importer->wp_version, '4.8', '<' ) ) {
+								$this->upgrader->strings['skin_update_successful'] .= ' <a href="#" class="hide-if-no-js" onclick="%2$s"><span>' . esc_html__( 'Show Details', 'film-production' ) . '</span><span class="hidden">' . esc_html__( 'Hide Details', 'film-production' ) . '</span>.</a>';
 							}
 						}
 					}
@@ -3568,15 +3731,15 @@ if ( ! function_exists( 'tgmpa_load_bulk_installer' ) ) {
 						// Display message based on if all plugins are now active or not.
 						$update_actions = array();
 
-						if ( $this->wpelemento_importer->is_tgmpa_complete() ) {
+						if ( $this->wpelemento_importer->is_wpelemento_importer_tgmpa_complete() ) {
 							// All plugins are active, so we display the complete string and hide the menu to protect users.
 							echo '<style type="text/css">#adminmenu .wp-submenu li.current { display: none !important; }</style>';
 							$update_actions['dashboard'] = sprintf(
 								esc_html( $this->wpelemento_importer->strings['complete'] ),
-								'<a href="' . esc_url( self_admin_url() ) . '">' . esc_html__( 'Return to the Dashboard', 'wpelemento-importer' ) . '</a>'
+								'<a href="' . esc_url( self_admin_url() ) . '">' . esc_html( $this->wpelemento_importer->strings['dashboard'] ) . '</a>'
 							);
 						} else {
-							$update_actions['tgmpa_page'] = '<a href="' . esc_url( $this->wpelemento_importer->get_tgmpa_url() ) . '" target="_parent">' . esc_html( $this->wpelemento_importer->strings['return'] ) . '</a>';
+							$update_actions['wpelemento_importer_tgmpa_page'] = '<a href="' . esc_url( $this->wpelemento_importer->get_wpelemento_importer_tgmpa_url() ) . '" target="_parent">' . esc_html( $this->wpelemento_importer->strings['return'] ) . '</a>';
 						}
 
 						/**
@@ -3587,7 +3750,7 @@ if ( ! function_exists( 'tgmpa_load_bulk_installer' ) ) {
 						 * @param array $update_actions Array of plugin action links.
 						 * @param array $plugin_info    Array of information for the last-handled plugin.
 						 */
-						$update_actions = apply_filters( 'tgmpa_update_bulk_plugins_complete_actions', $update_actions, $this->plugin_info );
+						$update_actions = apply_filters( 'wpelemento_importer_tgmpa_update_bulk_plugins_complete_actions', $update_actions, $this->plugin_info );
 
 						if ( ! empty( $update_actions ) ) {
 							$this->feedback( implode( ' | ', (array) $update_actions ) );
@@ -3634,7 +3797,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_Utils' ) ) {
 	 *
 	 * All methods are static, poor-dev name-spacing class wrapper.
 	 *
-	 * Class was called TGM_Utils in 2.5.0 but renamed WPELEMENTO_IMPORTER_TGMPA_Utils in 2.5.1 as this was conflicting with Soliloquy.
+	 * Class was called WPELEMENTO_IMPORTER_TGM_Utils in 2.5.0 but renamed WPELEMENTO_IMPORTER_TGMPA_Utils in 2.5.1 as this was conflicting with Soliloquy.
 	 *
 	 * @since 2.5.0
 	 *
@@ -3708,7 +3871,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_Utils' ) ) {
 		/**
 		 * Helper function: Cast a value to bool
 		 *
-		 * @since 2.5.0
+		 * @since 2.5.0wpelemento_importer_
 		 *
 		 * @static
 		 *
@@ -3716,7 +3879,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_Utils' ) ) {
 		 * @return bool
 		 */
 		protected static function wpelemento_importer_emulate_filter_bool( $value ) {
-			// @codingStandardsIgnoreStart
+			// phpcs:disable WordPress.Arrays.ArrayDeclarationSpacing.ArrayItemNoNewLine
 			static $true  = array(
 				'1',
 				'true', 'True', 'TRUE',
@@ -3731,7 +3894,7 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_Utils' ) ) {
 				'no', 'No', 'NO',
 				'off', 'Off', 'OFF',
 			);
-			// @codingStandardsIgnoreEnd
+			// phpcs:enable
 
 			if ( is_bool( $value ) ) {
 				return $value;
@@ -3752,5 +3915,5 @@ if ( ! class_exists( 'WPELEMENTO_IMPORTER_TGMPA_Utils' ) ) {
 
 			return false;
 		}
-	} // End of class WPELEMENTO_IMPORTER_TGMPA_Utils
-} // End of class_exists wrapper
+	} // End of class TGMPA_Utils
+}
