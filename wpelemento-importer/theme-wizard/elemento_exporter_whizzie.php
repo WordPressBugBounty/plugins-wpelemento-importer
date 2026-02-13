@@ -487,7 +487,7 @@ class WPElemento_Importer_ThemeWhizzie {
   * Make an interface for the wizard
   */
   public function wizard_page() {
-    tgmpa_load_bulk_installer();
+    wpelemento_importer_tgmpa_load_bulk_installer();
     if (!class_exists('WPELEMENTO_IMPORTER_TGM_Plugin_Activation') || !isset($GLOBALS['wpelemento_importer_tgmpa'])) {
       die('Failed to find TGM');
     }
@@ -805,7 +805,7 @@ class WPElemento_Importer_ThemeWhizzie {
        foreach ($plugins['activate'] as $slug => $plugin) {
          if ($_POST['slug'] == $slug) {
            $json = array('url' => esc_url(admin_url($this->tgmpa_url)),
-            'plugin' => array($slug), 'tgmpa-page' => $this->tgmpa_menu_slug, 'plugin_status' => 'all', '_wpnonce' => wp_create_nonce('bulk-plugins'), 'action' => 'tgmpa-bulk-activate', 'action2' => - 1, 'message' => esc_html__('Activating Plugin', 'wpelemento-importer')
+            'plugin' => array($slug), 'tgmpa-page' => $this->tgmpa_menu_slug, 'plugin_status' => 'all', '_wpnonce' => wp_create_nonce('bulk-plugins'), 'action' => 'wpelemento-importer-tgmpa-bulk-activate', 'action2' => - 1, 'message' => esc_html__('Activating Plugin', 'wpelemento-importer')
           );
            break;
          }

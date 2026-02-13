@@ -8,13 +8,13 @@ function wpelemento_importer_pro_register_recommended_plugins_set() {
 
 	$plugins_arr = array(
 		array(
-			'name'             => __( 'Elementor', 'elementor-importer' ),
+			'name'             => __( 'Elementor', 'wpelemento-importer' ),
 			'slug'             => 'elementor',
 			'required'         => true,
 			'force_activation' => false,
 		),
 		array(
-			'name'             => __( 'Kirki Customizer Framework', 'elementor-importer' ),
+			'name'             => __( 'Kirki Customizer Framework', 'wpelemento-importer' ),
 			'slug'             => 'kirki',
 			'required'         => true,
 			'force_activation' => false,

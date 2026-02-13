@@ -3,7 +3,7 @@
   Plugin Name:       WPElemento Importer
   Plugin URI:        
   Description:       Effortlessly set up WordPress themes with WPelemento Importer. One-click demo imports, Elementor compatibility, and support for diverse themes.
-  Version:           0.6.6
+  Version:           0.6.7
   Requires at least: 5.2
   Requires PHP:      7.2
   Author:            wpelemento
@@ -12,7 +12,6 @@
   License URI:       https://www.gnu.org/licenses/gpl-2.0.html
   Text Domain:       wpelemento-importer
 */
-
 register_activation_hook(__FILE__, 'wpelemento_importer_activate');
 add_action('admin_init', 'wpelemento_importer_redirect');
 
